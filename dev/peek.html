@@ -1,0 +1,43 @@
+<!doctype html>
+<!--
+  Dev-only scene viewer (not part of the build). With `yarn dev` running, open:
+    /dev/peek.html?p=0&at=1440         North Valley at distance 1440
+    /dev/peek.html?p=1&at=380&duck=1   Oak Creek, crew ducking
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Margin Mower peek</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body style="margin: 0; background: #23272f">
+    <canvas id="peek"></canvas>
+    <script type="module">
+      import { useContext } from '/src/render/draw.ts';
+      import { drawScene } from '/src/render/scene.ts';
+      import { PROPERTIES } from '/src/rules/levels.ts';
+      import { createRun } from '/src/rules/run.ts';
+
+      await document.fonts.load('8px "Press Start 2P"');
+      const q = new URLSearchParams(location.search);
+      const canvas = document.getElementById('peek');
+      canvas.width = 960;
+      canvas.height = 540;
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(2, 0, 0, 2, 0, 0);
+      useContext(ctx);
+      const run = createRun(PROPERTIES[Number(q.get('p') ?? 0)]);
+      run.dist = Number(q.get('at') ?? 12);
+      for (let c = 0; c < Math.floor(run.dist / 24); c++) if (run.level.mowable[c]) run.mowed.add(c);
+      run.ducking = q.has('duck');
+      const frame = () => {
+        drawScene(run, new Set());
+        requestAnimationFrame(frame);
+      };
+      frame();
+    </script>
+  </body>
+</html>
