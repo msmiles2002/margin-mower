@@ -45,8 +45,8 @@ export function logo(href: string, small = false): HTMLAnchorElement {
 }
 
 // Replaces the overlay with a panel and focuses its first button so Enter/Space works.
-export function showPanel(overlay: HTMLElement, children: Child[]): HTMLDivElement {
-  const panel = el('div', { className: 'panel' }, children);
+export function showPanel(overlay: HTMLElement, children: Child[], className = 'panel'): HTMLDivElement {
+  const panel = el('div', { className }, children);
   overlay.replaceChildren(panel);
   // preventScroll: iOS Safari otherwise scrolls the whole page to the button, pushing the panel's top off screen.
   panel.querySelector('button')?.focus({ preventScroll: true });
@@ -55,7 +55,7 @@ export function showPanel(overlay: HTMLElement, children: Child[]): HTMLDivEleme
 }
 
 // Resolves when a button inside `panel` created with `onClick: done` is pressed; clears the overlay.
-export function waitFor<T>(overlay: HTMLElement, build: (done: (value: T) => void) => Child[]): Promise<T> {
+export function waitFor<T>(overlay: HTMLElement, build: (done: (value: T) => void) => Child[], className = 'panel'): Promise<T> {
   return new Promise((resolve) => {
     showPanel(
       overlay,
@@ -63,6 +63,7 @@ export function waitFor<T>(overlay: HTMLElement, build: (done: (value: T) => voi
         overlay.replaceChildren();
         resolve(value);
       }),
+      className,
     );
   });
 }

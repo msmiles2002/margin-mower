@@ -79,30 +79,35 @@ export function showResults(
       shareStatus.textContent = SHARE_MESSAGES[await actions.onShare()];
       shareButton.disabled = false;
     });
-    return [
+    // Two columns on wide screens (the result | the details and actions); one column on phones.
+    const result = el('div', { className: 'col' }, [
       el('h1', { className: 'rank', text: summary.title }),
       outcome(copy),
       el('div', { className: 'stars', text: starString(summary.stars, summary.maxStars) }),
       ...headlineBlock(copy, false),
       ...laborRows(copy.labor),
-      el('div', { className: 'section', text: 'QUALITY' }),
+      el('div', { className: 'points', text: copy.points }),
+    ]);
+    const details = el('div', { className: 'col' }, [
+      el('div', { className: 'section first', text: 'QUALITY' }),
       ...checkRows(copy.quality),
       ...note(copy.callbackRisk, 'callback-risk'),
       el('div', { className: 'section', text: 'BY PROPERTY' }),
       ...copy.properties.map((p) =>
         el('div', { className: 'property' }, [row(el('b', { text: p.name }), p.efficiency, 'value'), el('div', { className: 'story', text: p.story })]),
       ),
-      el('div', { className: 'points', text: copy.points }),
       el('div', { className: 'takeaway' }, [
         el('p', {}, [el('b', { text: copy.takeaway[0] })]),
         el('p', { text: copy.takeaway[1] }),
       ]),
       shareButton,
       shareStatus,
-      logo(actions.siteUrl, true),
-      link('See how BomData works', 'btn secondary', actions.siteUrl),
+      el('div', { className: 'button-row' }, [
+        link('See how BomData works', 'btn secondary', actions.siteUrl),
+        button('Play again', 'secondary', () => done()),
+      ]),
       ...(actions.showLeadForm ? [leadForm(actions.onSubmitLead)] : []),
-      button('Play again', 'secondary', () => done()),
-    ];
-  });
+    ]);
+    return [logo(actions.siteUrl, true), el('div', { className: 'results-grid' }, [result, details])];
+  }, 'panel results');
 }

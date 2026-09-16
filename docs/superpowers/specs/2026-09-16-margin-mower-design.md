@@ -178,7 +178,8 @@ All scoring works in tenths of an hour, the unit every screen shows. Actual hour
    - **BY PROPERTY:** each property's name and "N% efficiency", with a short story such as "Clean job, under budget" or "Fast finish, one missed weed".
    - Small points.
    - Takeaway: "**Fast only counts when the work is done right.**" / "BomData shows where labor hours are won, lost, or hidden."
-   - Buttons: **SHARE MY SCORE** (primary, green) with a status line, the small logo, **See how BomData works** (bomdata.io with UTM tags), the optional HubSpot form, and **Play again**.
+   - **Layout:** the logo at the top of the panel, then a two-column grid on screens at least 760px wide. The left column is the result (rank through points). The right column is quality, by property, the takeaway and the actions. Phones get one column and scroll. It fits a 1024×600 window.
+   - **Buttons:** **SHARE MY SCORE** (primary, green) with a status line (hidden when empty), then **See how BomData works** (bomdata.io with UTM tags) and **Play again** side by side, then the optional HubSpot form.
    - The 8–10% claim is no longer shown.
    - Summary line: `Route Pro · 4/5 stars · 103% efficiency · 0.3 hrs saved · 2,080 pts`.
    - Share text: "I finished as a Route Pro in Margin Mower: 103% efficiency, 0.3 hrs saved. Can you mow on budget? https://bomdata.io/margin-mower/"
