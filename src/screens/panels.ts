@@ -10,10 +10,8 @@ export function showTitle(overlay: HTMLElement): Promise<void> {
   return waitFor<void>(overlay, (done) => [
     logo(withUtm(config.siteUrl)),
     el('h1', { text: 'Margin Mower' }),
-    el('p', {}, [el('b', { text: 'Can you mow on budget?' })]),
-    el('p', {
-      text: 'Two properties. Hop the obstacles, duck the branches, pull the weeds, and cross the finish line before your 6 hours run out.',
-    }),
+    el('p', {}, [el('b', { text: 'You’ve got 6 hours. Don’t blow the labor budget.' })]),
+    el('p', {}, ['Two properties. One crew.', el('br'), 'Finish the route before your hours run out.']),
     button('Start shift', 'primary', () => done()),
   ]);
 }

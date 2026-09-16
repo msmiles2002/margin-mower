@@ -38,8 +38,10 @@ window.addEventListener('unhandledrejection', () => showFatal(overlay));
 const rng = Math.random;
 const seenHints: SeenHints = new Set();
 let shown: Run | null = null;
+// Hint bubbles stay hidden behind the title screen.
+let previewHints = false;
 const redraw = () => {
-  if (shown !== null) drawScene(shown, seenHints, !shown.ended);
+  if (shown !== null) drawScene(shown, seenHints, previewHints && !shown.ended);
 };
 useContext(setupCanvas(canvas, redraw));
 
@@ -84,6 +86,7 @@ async function main(): Promise<void> {
   shown = createRun(PROPERTIES[0]);
   redraw();
   await showTitle(overlay);
+  previewHints = true;
   for (;;) {
     const summary = await playRound();
     await showResults(overlay, summary, {

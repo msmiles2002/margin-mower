@@ -124,7 +124,7 @@ Obstacle hit boxes (width × height, sitting on the ground):
 
 ## Screens
 
-1. **Title:** "Margin Mower", "Can you mow on budget?", a one-line how-to, **Start shift**, and "A game by BomData".
+1. **Title:** the BomData logo, "Margin Mower", "You’ve got 6 hours. Don’t blow the labor budget." (bold), "Two properties. One crew. / Finish the route before your hours run out." and **Start shift**. The first property is drawn behind the panel with no hint bubbles.
 2. **Property intro:**
    - "Property N of 2" and the property name.
    - A BomData heads-up card:
