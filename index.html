@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Margin Mower</title>
+    <meta name="description" content="Can you mow on budget? A BomData game." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <div id="hud" hidden>
+        <span id="hud-name"></span><span id="hud-clock"></span><span id="hud-cut"></span>
+      </div>
+      <canvas id="board"></canvas>
+      <div id="controls" hidden>
+        <button id="hop-button" type="button">⬆ HOP<small>↑ / Space / tap game</small></button>
+        <button id="duck-button" type="button">⬇ DUCK · PULL<small>↓ key (hold to duck)</small></button>
+      </div>
+      <div id="overlay"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
