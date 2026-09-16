@@ -47,7 +47,9 @@ export function logo(href: string, small = false): HTMLAnchorElement {
 export function showPanel(overlay: HTMLElement, children: Child[]): HTMLDivElement {
   const panel = el('div', { className: 'panel' }, children);
   overlay.replaceChildren(panel);
-  panel.querySelector('button')?.focus();
+  // preventScroll: iOS Safari otherwise scrolls the whole page to the button, pushing the panel's top off screen.
+  panel.querySelector('button')?.focus({ preventScroll: true });
+  window.scrollTo(0, 0);
   return panel;
 }
 

@@ -86,15 +86,22 @@ body.playing { touch-action: none; -webkit-touch-callout: none; -webkit-user-sel
 
 #overlay:empty { display: none; }
 
-.panel {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+/* Full-screen layer for panels. A panel is centered when it fits and scrolls from its top when it
+   doesn't, so phones never cut off the top. */
+#overlay {
+  position: fixed;
+  inset: 0;
   z-index: 5;
-  width: min(calc(100vw - 32px), 420px);
-  max-height: calc(100vh - 32px);
-  overflow: auto;
+  display: flex;
+  padding: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.panel {
+  position: relative;
+  margin: auto;
+  width: min(100%, 420px);
   padding: 20px 16px;
   text-align: center;
   background: var(--paper);
