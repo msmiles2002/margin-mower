@@ -24,11 +24,11 @@ yarn build    # typecheck and build to dist/
 1. On github.com, create a new **public** repository named `margin-mower`. Leave it empty.
 2. From this folder, push the code:
    ```sh
-   git remote add origin https://github.com/<your-username>/margin-mower.git
+   git remote add origin https://github.com/msmiles2002/margin-mower.git
    git push -u origin main
    ```
 3. In the repository, open **Settings → Pages**. Under **Build and deployment**, set **Source** to **GitHub Actions**.
-4. Open the **Actions** tab and wait for **Deploy to GitHub Pages** to finish. The game is then live at `https://<your-username>.github.io/margin-mower/`.
+4. Open the **Actions** tab and wait for **Deploy to GitHub Pages** to finish. The game is then live at `https://msmiles2002.github.io/margin-mower/`.
 
 Every later push to `main` re-runs the tests and redeploys.
 
@@ -39,7 +39,7 @@ Every later push to `main` re-runs the tests and redeploys.
 3. Add a **Custom HTML** block containing:
    ```html
    <iframe
-     src="https://<your-username>.github.io/margin-mower/"
+     src="https://msmiles2002.github.io/margin-mower/"
      title="Margin Mower: Can you mow on budget?"
      allow="web-share; clipboard-write"
      style="display:block;width:100%;height:100vh;border:0;"
@@ -64,7 +64,7 @@ On each of these:
 - Android Chrome
 - Desktop Chrome and Safari
 
-check both `https://<your-username>.github.io/margin-mower/` and `https://bomdata.io/margin-mower/`:
+check both `https://msmiles2002.github.io/margin-mower/` and `https://bomdata.io/margin-mower/`:
 
 - [ ] ↑ / Space / tap hops; ↓ ducks (hold) and pulls weeds; the on-screen buttons do the same
 - [ ] Pressing the game controls never scrolls the page
