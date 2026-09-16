@@ -60,7 +60,6 @@ body.playing { touch-action: none; -webkit-touch-callout: none; -webkit-user-sel
   font: 10px var(--pixel);
 }
 #hud-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#hud-clock.over { color: var(--coral); }
 
 #controls {
   display: flex;

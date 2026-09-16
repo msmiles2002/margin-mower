@@ -1,7 +1,8 @@
-import { GROUND, MOWER_SCREEN_X, WORLD_WIDTH as W } from '../rules/constants';
+import { BUDGET_HOURS, GROUND, MOWER_SCREEN_X, WORLD_WIDTH as W } from '../rules/constants';
 import type { Obstacle } from '../rules/levels';
-import type { Run } from '../rules/run';
-import { OUTLINE as OL, context, poly, rect, roundRect } from './draw';
+import { hoursUsed, type Run } from '../rules/run';
+import { budgetGauge, type GaugeTone } from './budgetGauge';
+import { OUTLINE as OL, context, poly, rect, roundRect, text } from './draw';
 import { drawBackdrop, drawClouds, drawLawn, drawSidewalkAndStreet, drawSky } from './scenery';
 import { drawBranch, drawBranchTrunk, drawCrew, drawObstacle, drawWeed } from './sprites';
 
@@ -56,11 +57,30 @@ function finishFlag(x: number): void {
   }
 }
 
+const GAUGE_COLORS: Record<GaugeTone, string> = { ok: '#6FC062', low: '#FFCC49', over: '#F47D6D' };
+
+function drawBudgetGauge(run: Run): void {
+  const gauge = budgetGauge(hoursUsed(run), BUDGET_HOURS);
+  const color = GAUGE_COLORS[gauge.tone];
+  const left = 16;
+  const width = W - 32;
+  roundRect(8, 5, W - 16, 27, 5, 'rgba(15, 18, 24, 0.78)');
+  text(gauge.label, left, 13, '7px "Press Start 2P"', '#ffffff', 'left');
+  text(gauge.time, left + width, 13, '8px "Press Start 2P"', color, 'right');
+  roundRect(left, 20, width, 7, 3, 'rgba(255, 255, 255, 0.18)');
+  if (gauge.fraction > 0) roundRect(left, 20, Math.max(6, width * gauge.fraction), 7, 3, color);
+}
+
+export interface SceneOptions {
+  hints: boolean;
+  gauge: boolean;
+}
+
 const visible = (x: number, margin = 60) => x > -margin && x < W + margin;
 const isBranch = (o: Obstacle) => o.kind === 'branch';
 
-// Draws one full frame for the run. `showHints` is false for the preview behind the intro panel.
-export function drawScene(run: Run, seen: SeenHints, showHints = true): void {
+// Draws one full frame. Previews behind the title and intro panels turn the hints and the gauge off.
+export function drawScene(run: Run, seen: SeenHints, options: SceneOptions = { hints: true, gauge: true }): void {
   const c = context();
   const cam = run.dist - MOWER_SCREEN_X;
   const shake = run.shake > 0 ? (Math.random() - 0.5) * 5 : 0;
@@ -87,7 +107,7 @@ export function drawScene(run: Run, seen: SeenHints, showHints = true): void {
 
   for (const p of run.particles) rect(p.x - cam, p.y, 2, 2, p.color);
 
-  if (showHints) {
+  if (options.hints) {
     for (const t of hintTargets(run)) {
       const sx = t.x - cam;
       if (t.active && !seen.has(hintId(run, t.key)) && sx > MOWER_SCREEN_X - 10 && sx < W - 20) bubble(sx, t.y, t.label);
@@ -105,7 +125,6 @@ export function drawScene(run: Run, seen: SeenHints, showHints = true): void {
     c.fillText(f.text, sx, f.y);
   }
 
-  rect(10, 8, W - 20, 5, 'rgba(0,0,0,.35)');
-  rect(10, 8, Math.min(1, run.dist / run.level.lengthPx) * (W - 20), 5, '#FFCC49');
+  if (options.gauge) drawBudgetGauge(run);
   c.restore();
 }

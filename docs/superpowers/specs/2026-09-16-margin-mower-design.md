@@ -76,7 +76,7 @@ It's a side-scrolling runner. The crew drives right automatically, and the camer
 | Push crew speed | 128 units/s; hit box height 43 standing, 34 ducking |
 | Crew hit box width | 20 (±10 around the crew's position) |
 | Weed reach | ±33 |
-| Bump stall | 1 s. The crew stops, the clock keeps running, and "+0.Xh" floats up. |
+| Bump stall | 1 s. The crew stops, the clock keeps running, and "+N min" floats up. |
 | Start / end | Starts at position 12; ends at level length + 36 |
 | Frame step cap | 0.05 s |
 
@@ -100,7 +100,12 @@ Obstacle hit boxes (width × height, sitting on the ground):
 - **First-time hint bubbles** ("⬆ HOP", "⬇ DUCK", "⬇ PULL") bob above the first obstacle of each kind and the first weed. They stop showing once the crew passes them.
 - **Grass clippings** fly while mowing, and bumps shake the screen and scatter debris.
 - **Weed feedback:** "+50" when a weed is pulled. A weed that passes out of reach shows "missed" and a red "!".
-- **HUD:** short property name · crew, the clock `x.x/6.0h` (red when over budget), and `NN% cut`. A yellow progress bar runs across the top of the canvas.
+- **HUD:** short property name · crew, and `NN% cut`.
+- **Labor budget gauge:** drawn at the top of the canvas during play only (hidden behind the title and intro screens).
+  - It reads "LABOR BUDGET" with the time left as h:mm, rounded up to the minute, and the bar drains as hours are used.
+  - The bar is green while more than 25% of the budget remains, and yellow after that.
+  - Once over budget, it reads "OVER BUDGET +h:mm" with a full coral bar.
+  - It replaces the old route-progress bar.
 
 ## Scoring (per property, maximum 5 stars; round maximum 10)
 

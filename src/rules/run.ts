@@ -134,7 +134,7 @@ function collide(run: Run, rng: Rng): void {
     run.stall = STALL_SECONDS;
     run.shake = 0.25;
     run.floats.push({
-      x: run.dist, y: GROUND - 50, text: `+${(STALL_SECONDS * run.hoursPerSecond).toFixed(1)}h`, life: 1, color: '#F47D6D',
+      x: run.dist, y: GROUND - 50, text: `+${Math.round(STALL_SECONDS * run.hoursPerSecond * 60)} min`, life: 1, color: '#F47D6D',
     });
     if (o.kind === 'neighbor') run.floats.push({ x: o.x, y: GROUND - 70, text: 'Sorry, ma’am!', life: 1.2, color: '#ffffff' });
     const branch = o.kind === 'branch';

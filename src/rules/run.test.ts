@@ -95,7 +95,7 @@ describe('bumps', () => {
     advanceUntil(run, (r) => r.hits > 0);
     expect(run.hits).toBe(1);
     expect(run.stall).toBe(STALL_SECONDS);
-    expect(run.floats.some((f) => f.text.startsWith('+') && f.text.endsWith('h'))).toBe(true);
+    expect(run.floats.map((f) => f.text)).toContain(`+${Math.round(STALL_SECONDS * run.hoursPerSecond * 60)} min`);
     const dist = run.dist;
     const elapsed = run.elapsed;
     tickRun(run, 0.5, noEffects);

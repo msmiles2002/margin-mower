@@ -27,7 +27,6 @@ const canvas = byId('board', HTMLCanvasElement);
 const hud: HudElements = {
   hud: byId('hud', HTMLDivElement),
   name: byId('hud-name', HTMLSpanElement),
-  clock: byId('hud-clock', HTMLSpanElement),
   cut: byId('hud-cut', HTMLSpanElement),
   controls: byId('controls', HTMLDivElement),
 };
@@ -41,7 +40,7 @@ let shown: Run | null = null;
 // Hint bubbles stay hidden behind the title screen.
 let previewHints = false;
 const redraw = () => {
-  if (shown !== null) drawScene(shown, seenHints, previewHints && !shown.ended);
+  if (shown !== null) drawScene(shown, seenHints, { hints: previewHints && !shown.ended, gauge: shown.ended });
 };
 useContext(setupCanvas(canvas, redraw));
 
