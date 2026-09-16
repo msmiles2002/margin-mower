@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { scoreProperty, summarizeRound, type PropertyInput } from '../rules/scoring';
-import { efficiencyCaption, propertyCardCopy, propertyStory, shiftCardCopy } from './cardCopy';
+import { efficiencyCaption, propertyCardCopy, shiftCardCopy } from './cardCopy';
 
 const perfect: PropertyInput = {
   hoursUsed: 5.6,
@@ -86,28 +86,9 @@ describe('propertyCardCopy', () => {
   });
 });
 
-describe('propertyStory', () => {
-  it.each([
-    [{}, 'Clean job, under budget'],
-    [{ hoursUsed: 6.2 }, 'Clean job, just over budget'],
-    [{ hoursUsed: 7 }, 'Clean job, over budget'],
-    [{ weedsPulled: 3 }, 'Fast finish, one missed weed'],
-    [{ weedsPulled: 2, hoursUsed: 6 }, 'On budget, two missed weeds'],
-    [{ mowedColumns: 70 }, 'Fast finish, grass left uncut'],
-    [{ mowedColumns: 70, weedsPulled: 3 }, 'Fast finish, missed weeds and grass'],
-    [{ hits: 2 }, 'Fast finish, two bumps'],
-  ])('%o → %s', (input, story) => {
-    expect(propertyStory(score(input))).toBe(story);
-  });
-});
-
 describe('shiftCardCopy', () => {
   const shift = (a: Partial<PropertyInput>, b: Partial<PropertyInput>) => {
-    const results = [
-      { name: 'North Valley', score: score(a) },
-      { name: 'Oak Creek', score: score(b) },
-    ];
-    return shiftCardCopy(results, summarizeRound(results.map((r) => r.score)));
+    return shiftCardCopy(summarizeRound([score(a), score(b)]));
   };
 
   it('tells the story of the example shift', () => {
@@ -123,16 +104,6 @@ describe('shiftCardCopy', () => {
       { label: 'Saved after quality penalties', value: '0.3 hrs', tone: 'good' },
     ]);
     expect(c.takeaway).toEqual(['Fast only counts when the work is done right.', 'BomData shows where labor hours are won, lost, or hidden.']);
-    expect(c.quality).toEqual([
-      { text: 'Grass cut: 100%', ok: true },
-      { text: 'Weeds pulled: 7/8', ok: false },
-      { text: '1 collision', ok: false },
-    ]);
-    expect(c.callbackRisk).toBe('Callback risk: 1 missed item');
-    expect(c.properties).toEqual([
-      { name: 'North Valley', efficiency: '107% efficiency', story: 'Clean job, under budget' },
-      { name: 'Oak Creek', efficiency: '100% efficiency', story: 'On budget, one missed weed' },
-    ]);
     expect(c.points).toBe('+2,080 pts');
   });
 
@@ -154,6 +125,5 @@ describe('shiftCardCopy', () => {
     const c = shift({}, {});
     expect(c.outcome).toEqual({ text: 'On budget. Full quality.', perfect: true });
     expect(c.labor).toHaveLength(3);
-    expect(c.callbackRisk).toBeNull();
   });
 });

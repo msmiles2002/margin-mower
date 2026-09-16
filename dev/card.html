@@ -38,11 +38,8 @@
       await document.fonts.ready;
       const overlay = document.getElementById('overlay');
       if (q.get('screen') === 'results') {
-        const results = [
-          { name: 'North Valley', score: scoreProperty({ ...base, hoursUsed: 5.63 }) },
-          { name: 'Oak Creek', score: scoreProperty(input) },
-        ];
-        showResults(overlay, results, summarizeRound(results.map((r) => r.score)), {
+        const scores = [scoreProperty({ ...base, hoursUsed: 5.63 }), scoreProperty(input)];
+        showResults(overlay, summarizeRound(scores), {
           siteUrl: '#', showLeadForm: false, onShare: async () => 'cancelled', onSubmitLead: async () => false,
         });
       } else {

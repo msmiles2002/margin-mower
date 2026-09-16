@@ -171,16 +171,15 @@ All scoring works in tenths of an hour, the unit every screen shows. Actual hour
      - "Clean run bonus: +100" when there were no collisions.
    - Small "+1,140 pts".
    - **HEAD TO PROPERTY 2 →**, or **See my scorecard** after the last property.
-5. **Results scorecard** (`shiftCardCopy`):
+5. **Results scorecard** (`shiftCardCopy`), one column, 480px wide, about 600px tall so it fits a 1280×650 laptop window:
+   - The small logo at the top.
    - The rank (e.g. **Route Pro**), the outcome line (e.g. "Fast route. One callback risk."), and stars out of 5. There is no "Weekly scorecard" heading.
-   - "103% EFFICIENCY" and its caption, with no labor headline, then the same rows as the property card totaled across the shift (Budget 12.0 hrs). When there are quality penalties, the rows end with "Saved after quality penalties 0.3 hrs" (green, or amber at 0.0) or "Over budget after quality penalties 0.3 hrs" (coral).
-   - **QUALITY:** combined checks plus the callback risk line.
-   - **BY PROPERTY:** each property's name and "N% efficiency", with a short story such as "Clean job, under budget" or "Fast finish, one missed weed".
+   - "103% EFFICIENCY" and its caption, with no labor headline.
+   - The labor rows, totaled across the shift (Budget 12.0 hrs). When there are quality penalties, they end with "Saved after quality penalties 0.3 hrs" (green, or amber at 0.0) or "Over budget after quality penalties 0.3 hrs" (coral).
    - Small points.
+   - No quality or by-property sections; those details stay on the property cards.
    - Takeaway: "**Fast only counts when the work is done right.**" / "BomData shows where labor hours are won, lost, or hidden."
-   - **Layout:** the logo at the top of the panel, then a two-column grid on screens at least 760px wide. The left column is the result (rank through points). The right column is quality, by property, the takeaway and the actions. Phones get one column and scroll. It fits a 1024×600 window.
-   - **Buttons:** **SHARE MY SCORE** (primary, green) with a status line (hidden when empty), then **See how BomData works** (bomdata.io with UTM tags) and **Play again** side by side, then the optional HubSpot form.
-   - The 8–10% claim is no longer shown.
+   - **SHARE MY SCORE** (primary, green) with a status line (hidden when empty), then **See how BomData works** (bomdata.io with UTM tags) and **Play again** side by side, then the optional HubSpot form.
    - Summary line: `Route Pro · 4/5 stars · 103% efficiency · 0.3 hrs saved · 2,080 pts`.
    - Share text: "I finished as a Route Pro in Margin Mower: 103% efficiency, 0.3 hrs saved. Can you mow on budget? https://bomdata.io/margin-mower/"
    - Share image: logo, MARGIN MOWER, rank, outcome line, 5 stars, "103% EFFICIENCY | 0.3 HRS SAVED", a smaller points line, the tagline and the URL.

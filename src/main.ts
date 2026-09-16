@@ -9,10 +9,9 @@ import { drawScene, updateHints, type SeenHints } from './render/scene';
 import { STALL_SECONDS } from './rules/constants';
 import { PROPERTIES } from './rules/levels';
 import { createRun, resultOf, type Run } from './rules/run';
-import { scoreProperty, summarizeRound, type RoundSummary } from './rules/scoring';
+import { scoreProperty, summarizeRound, type PropertyScore, type RoundSummary } from './rules/scoring';
 import { hideHud, showHud, updateHud, type HudElements } from './screens/hud';
 import { showFatal, showIntro, showPropertyCard, showTitle } from './screens/panels';
-import type { NamedScore } from './screens/cardCopy';
 import { showResults } from './screens/results';
 import { renderCardBlob } from './share/card';
 import { downloadBlob, shareResult } from './share/share';
@@ -73,8 +72,8 @@ const SAMPLE_SUMMARY: RoundSummary = {
   title: 'Route Pro',
 };
 
-async function playRound(): Promise<NamedScore[]> {
-  const results: NamedScore[] = [];
+async function playRound(): Promise<RoundSummary> {
+  const scores: PropertyScore[] = [];
   for (const [index, property] of PROPERTIES.entries()) {
     const run = createRun(property);
     shown = run;
@@ -92,10 +91,10 @@ async function playRound(): Promise<NamedScore[]> {
     hideHud(hud);
 
     const score = scoreProperty(resultOf(run));
-    results.push({ name: property.shortName, score });
+    scores.push(score);
     await showPropertyCard(overlay, property, score, STALL_SECONDS * run.hoursPerSecond, index, PROPERTIES.length);
   }
-  return results;
+  return summarizeRound(scores);
 }
 
 async function main(): Promise<void> {
@@ -109,9 +108,8 @@ async function main(): Promise<void> {
   await showTitle(overlay);
   previewHints = true;
   for (;;) {
-    const results = await playRound();
-    const summary = summarizeRound(results.map((r) => r.score));
-    await showResults(overlay, results, summary, {
+    const summary = await playRound();
+    await showResults(overlay, summary, {
       siteUrl: withUtm(config.siteUrl),
       showLeadForm: hubspotEnabled(hubspotTarget),
       onShare: async () => shareResult(await renderCardBlob(summary), summary),

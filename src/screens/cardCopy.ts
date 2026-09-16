@@ -1,7 +1,7 @@
 // Wording for the property card and the final scorecard:
 // rank → efficiency → labor saved → budget / actual / variance / callbacks → quality.
 import { CLEAN_RUN_BONUS, type PropertyScore, type RoundSummary } from '../rules/scoring';
-import { counted, formatHours, formatPoints, outcomeLine } from '../share/text';
+import { formatHours, formatPoints, outcomeLine } from '../share/text';
 
 export type Tone = 'good' | 'warn' | 'bad';
 
@@ -80,12 +80,12 @@ export interface CardCopy {
   efficiencyCaption: string;
   headline: { text: string; tone: Tone };
   labor: LaborLine[];
-  quality: CheckLine[];
-  callbackRisk: string | null;
   points: string;
 }
 
 export interface PropertyCardCopy extends CardCopy {
+  quality: CheckLine[];
+  callbackRisk: string | null;
   cleanRunBonus: string | null;
 }
 
@@ -107,27 +107,8 @@ export function propertyCardCopy(score: PropertyScore, hoursPerBump: number): Pr
   };
 }
 
-export interface NamedScore {
-  name: string;
-  score: PropertyScore;
-}
-
 export interface ShiftCardCopy extends CardCopy {
-  properties: { name: string; efficiency: string; story: string }[];
   takeaway: readonly string[];
-}
-
-// A short story for one property on the final scorecard, e.g. "Fast finish, one missed weed".
-export function propertyStory(s: PropertyScore): string {
-  if (s.fullQuality && s.collisionFree) {
-    const labor = s.underHours > 0 ? 'under budget' : s.underHours === 0 ? 'on budget' : s.underHours >= -0.3 ? 'just over budget' : 'over budget';
-    return `Clean job, ${labor}`;
-  }
-  const labor = s.underHours > 0 ? 'Fast finish' : s.underHours === 0 ? 'On budget' : s.underHours >= -0.3 ? 'Just over budget' : 'Over budget';
-  if (s.fullQuality) return `${labor}, ${counted(s.hits, 'bump').toLowerCase()}`;
-  if (s.weedsMissed > 0 && s.uncutColumns > 0) return `${labor}, missed weeds and grass`;
-  if (s.weedsMissed > 0) return `${labor}, ${counted(s.weedsMissed, 'missed weed').toLowerCase()}`;
-  return `${labor}, grass left uncut`;
 }
 
 export const TAKEAWAY: readonly string[] = [
@@ -135,26 +116,13 @@ export const TAKEAWAY: readonly string[] = [
   'BomData shows where labor hours are won, lost, or hidden.',
 ];
 
-export function shiftCardCopy(results: readonly NamedScore[], summary: RoundSummary): ShiftCardCopy {
-  const scores = results.map((r) => r.score);
-  const sum = (pick: (s: PropertyScore) => number) => scores.reduce((total, s) => total + pick(s), 0);
-  const mowable = sum((s) => s.mowableColumns);
-  const cut = mowable === 0 ? 100 : Math.floor((sum((s) => s.mowedColumns) / mowable) * 100);
-  const weedsPulled = sum((s) => s.weedsPulled);
-  const weedCount = sum((s) => s.weedCount);
+export function shiftCardCopy(summary: RoundSummary): ShiftCardCopy {
   return {
     outcome: outcomeLine(summary),
     efficiency: `${summary.efficiency}% efficiency`,
     efficiencyCaption: efficiencyCaption(summary.efficiency),
     headline: laborHeadline(summary),
     labor: laborLines(summary, true),
-    quality: [
-      { text: `Grass cut: ${cut}%`, ok: scores.every((s) => s.cutStar) },
-      { text: `Weeds pulled: ${weedsPulled}/${weedCount}`, ok: weedsPulled === weedCount },
-      collisionsLine(summary.hits, ''),
-    ],
-    callbackRisk: callbackRisk(summary.callbackItems),
-    properties: results.map((r) => ({ name: r.name, efficiency: `${r.score.efficiency}% efficiency`, story: propertyStory(r.score) })),
     takeaway: TAKEAWAY,
     points: pointsText(summary.points),
   };

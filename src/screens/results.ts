@@ -2,9 +2,9 @@ import { isValidEmail, type LeadFields } from '../hubspot';
 import type { RoundSummary } from '../rules/scoring';
 import type { ShareOutcome } from '../share/share';
 import { starString } from '../share/text';
-import { shiftCardCopy, type NamedScore } from './cardCopy';
-import { checkRows, headlineBlock, laborRows, note, outcome } from './cardParts';
-import { button, el, link, logo, row, waitFor } from './dom';
+import { shiftCardCopy } from './cardCopy';
+import { headlineBlock, laborRows, outcome } from './cardParts';
+import { button, el, link, logo, waitFor } from './dom';
 
 export interface ResultsActions {
   siteUrl: string;
@@ -65,13 +65,8 @@ function leadForm(onSubmitLead: ResultsActions['onSubmitLead']): HTMLFormElement
 }
 
 // Resolves when the player chooses Play again.
-export function showResults(
-  overlay: HTMLElement,
-  results: readonly NamedScore[],
-  summary: RoundSummary,
-  actions: ResultsActions,
-): Promise<void> {
-  const copy = shiftCardCopy(results, summary);
+export function showResults(overlay: HTMLElement, summary: RoundSummary, actions: ResultsActions): Promise<void> {
+  const copy = shiftCardCopy(summary);
   return waitFor<void>(overlay, (done) => {
     const shareStatus = el('p', { className: 'form-status' });
     const shareButton = button('SHARE MY SCORE', 'primary', async () => {
@@ -79,23 +74,14 @@ export function showResults(
       shareStatus.textContent = SHARE_MESSAGES[await actions.onShare()];
       shareButton.disabled = false;
     });
-    // Two columns on wide screens (the result | the details and actions); one column on phones.
-    const result = el('div', { className: 'col' }, [
+    return [
+      logo(actions.siteUrl, true),
       el('h1', { className: 'rank', text: summary.title }),
       outcome(copy),
       el('div', { className: 'stars', text: starString(summary.stars, summary.maxStars) }),
       ...headlineBlock(copy, false),
       ...laborRows(copy.labor),
       el('div', { className: 'points', text: copy.points }),
-    ]);
-    const details = el('div', { className: 'col' }, [
-      el('div', { className: 'section first', text: 'QUALITY' }),
-      ...checkRows(copy.quality),
-      ...note(copy.callbackRisk, 'callback-risk'),
-      el('div', { className: 'section', text: 'BY PROPERTY' }),
-      ...copy.properties.map((p) =>
-        el('div', { className: 'property' }, [row(el('b', { text: p.name }), p.efficiency, 'value'), el('div', { className: 'story', text: p.story })]),
-      ),
       el('div', { className: 'takeaway' }, [
         el('p', {}, [el('b', { text: copy.takeaway[0] })]),
         el('p', { text: copy.takeaway[1] }),
@@ -107,7 +93,6 @@ export function showResults(
         button('Play again', 'secondary', () => done()),
       ]),
       ...(actions.showLeadForm ? [leadForm(actions.onSubmitLead)] : []),
-    ]);
-    return [logo(actions.siteUrl, true), el('div', { className: 'results-grid' }, [result, details])];
+    ];
   }, 'panel results');
 }

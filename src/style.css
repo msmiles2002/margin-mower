@@ -193,22 +193,15 @@ body.using-keyboard #controls button:focus-visible { outline: 3px solid var(--co
 .takeaway p { margin: 0 0 6px; font-size: 14px; }
 .payoff { margin: 14px 0 4px; }
 
-/* Final scorecard: two columns on wide screens, one column on phones. */
-.panel.results { width: min(100%, 880px); padding: 16px 20px; }
+/* Final scorecard */
+.panel.results { width: min(100%, 480px); padding: 14px 18px; }
+.results .takeaway { margin: 10px 0 4px; }
 .results .logo.small { margin: 0 auto 6px; }
 .results .rank { margin-bottom: 6px; }
 .results .row { padding: 5px 0; }
-.results .section.first { margin-top: 14px; }
-.results-grid { display: grid; grid-template-columns: 1fr; column-gap: 32px; }
-@media (min-width: 760px) {
-  .results-grid { grid-template-columns: 1fr 1fr; align-items: start; }
-  .results .section.first { margin-top: 2px; }
-  .results .takeaway { margin-top: 10px; }
-}
 .button-row { display: flex; gap: 10px; }
 .button-row .btn { flex: 1; padding-left: 6px; padding-right: 6px; font-size: 9px; }
 .results .form-status:empty { display: none; }
-.results .logo.small img { height: 40px; }
 .payoff .headline { font-size: 17px; font-weight: 700; }
 .payoff .points { margin-top: 2px; font-size: 13px; color: #4d5b66; }
 .payoff + .proof { margin-top: 14px; }
