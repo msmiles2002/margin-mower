@@ -165,7 +165,15 @@ Focus moves to each panel's first button, so Enter or Space works on a keyboard.
   - Pads are full-height dirt with pebbles.
 - **Scaling:** the canvas fills the space available (up to 2.2×) at device-pixel resolution, so edges stay smooth rather than pixelated.
 - **Fonts:** Press Start 2P for headings and the HUD; DM Sans for body text.
-- **Brand colors:** `#127DB9` blue and `#7EBEC5` teal.
+- **Brand colors (from the BomData logo):** green `#6FC062`, yellow `#FFCC49`, coral `#F47D6D`, ink `#231F20`.
+  - Primary buttons are green with ink text; secondary buttons, control buttons and the progress bar use yellow.
+  - Text accents on light panels use a darker green, `#2F7A2A`, so they stay readable.
+  - Coral is for warnings (overtime clock, bump cost) and focus outlines.
+  - The crew wear green and yellow.
+- **Logo:** `src/assets/bomdata-logo.png` (the bomdata.io logo with dark text on a transparent background) appears:
+  - at the top of the title panel, linking to bomdata.io
+  - above **Book a demo** on the scorecard
+  - in the top-left corner of the share image
 
 ## Build
 

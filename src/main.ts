@@ -88,6 +88,7 @@ async function main(): Promise<void> {
     const summary = await playRound();
     await showResults(overlay, summary, {
       demoUrl: withUtm(config.demoUrl),
+      siteUrl: withUtm(config.siteUrl),
       showLeadForm: hubspotEnabled(hubspotTarget),
       onShare: async () => shareResult(await renderCardBlob(summary), summary),
       onSubmitLead: (lead) =>

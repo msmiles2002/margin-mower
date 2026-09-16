@@ -106,6 +106,6 @@ export function drawScene(run: Run, seen: SeenHints, showHints = true): void {
   }
 
   rect(10, 8, W - 20, 5, 'rgba(0,0,0,.35)');
-  rect(10, 8, Math.min(1, run.dist / run.level.lengthPx) * (W - 20), 5, '#f5c542');
+  rect(10, 8, Math.min(1, run.dist / run.level.lengthPx) * (W - 20), 5, '#FFCC49');
   c.restore();
 }

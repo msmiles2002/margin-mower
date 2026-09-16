@@ -2,10 +2,11 @@ import { isValidEmail, type LeadFields } from '../hubspot';
 import type { RoundSummary } from '../rules/scoring';
 import type { ShareOutcome } from '../share/share';
 import { starString, summaryLine } from '../share/text';
-import { button, el, link, waitFor } from './dom';
+import { button, el, link, logo, waitFor } from './dom';
 
 export interface ResultsActions {
   demoUrl: string;
+  siteUrl: string;
   showLeadForm: boolean;
   onShare(): Promise<ShareOutcome>;
   onSubmitLead(lead: LeadFields): Promise<boolean>;
@@ -77,6 +78,7 @@ export function showResults(overlay: HTMLElement, summary: RoundSummary, actions
       el('div', { className: 'stars', text: starString(summary.stars, summary.maxStars) }),
       el('p', {}, [el('b', { text: summaryLine(summary) })]),
       el('p', { className: 'proof', text: 'Real crews using BomData improved labor efficiency 8–10%.' }),
+      logo(actions.siteUrl, true),
       link('Book a demo', 'btn primary', actions.demoUrl),
       shareButton,
       shareStatus,

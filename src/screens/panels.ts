@@ -4,17 +4,17 @@ import type { Crew } from '../rules/crews';
 import type { Property } from '../rules/levels';
 import { MAX_STARS_PER_PROPERTY, type PropertyScore } from '../rules/scoring';
 import { formatHours, formatPoints, starString } from '../share/text';
-import { button, el, link, row, showPanel, waitFor, withBold } from './dom';
+import { button, el, logo, row, showPanel, waitFor, withBold } from './dom';
 
 export function showTitle(overlay: HTMLElement): Promise<void> {
   return waitFor<void>(overlay, (done) => [
+    logo(withUtm(config.siteUrl)),
     el('h1', { text: 'Margin Mower' }),
     el('p', {}, [el('b', { text: 'Can you mow on budget?' })]),
     el('p', {
       text: 'Two properties. Hop the obstacles, duck the branches, pull the weeds, and cross the finish line before your 6 hours run out.',
     }),
     button('Start shift', 'primary', () => done()),
-    el('p', { className: 'proof' }, ['A game by ', link('BomData', 'inline-link', withUtm(config.siteUrl))]),
   ]);
 }
 

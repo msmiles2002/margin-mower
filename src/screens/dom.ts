@@ -1,3 +1,5 @@
+import logoUrl from '../assets/bomdata-logo.png';
+
 type Child = Node | string;
 
 export function el<K extends keyof HTMLElementTagNameMap>(
@@ -29,6 +31,16 @@ export function link(label: string, className: string, href: string): HTMLAnchor
 
 export function row(label: Child, value: string): HTMLDivElement {
   return el('div', { className: 'row' }, [el('span', {}, [label]), el('span', { className: 's', text: value })]);
+}
+
+// The BomData logo, linking to the BomData site.
+export function logo(href: string, small = false): HTMLAnchorElement {
+  const image = el('img');
+  image.src = logoUrl;
+  image.alt = 'BomData';
+  const node = link('', small ? 'logo small' : 'logo', href);
+  node.append(image);
+  return node;
 }
 
 // Replaces the overlay with a panel and focuses its first button so Enter/Space works.

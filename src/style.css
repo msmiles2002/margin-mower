@@ -1,8 +1,12 @@
 :root {
-  --brand: #127db9;
-  --ink: #1d2b36;
+  /* BomData logo colors */
+  --green: #6fc062;
+  --yellow: #ffcc49;
+  --coral: #f47d6d;
+  --ink: #231f20;
+  /* darker shades of the logo colors for text on light backgrounds (WCAG AA) */
+  --green-text: #2f7a2a;
   --paper: #fffdf5;
-  --gold: #f5c542;
   --pixel: 'Press Start 2P', monospace;
   --body: 'DM Sans', Arial, sans-serif;
 }
@@ -53,7 +57,7 @@ body {
   font: 10px var(--pixel);
 }
 #hud-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#hud-clock.over { color: #ff7a6b; }
+#hud-clock.over { color: var(--coral); }
 
 #controls {
   display: flex;
@@ -67,7 +71,7 @@ body {
   font: 12px/1.5 var(--pixel);
   border: 3px solid #111;
   box-shadow: 3px 3px 0 #111;
-  background: var(--gold);
+  background: var(--yellow);
   color: var(--ink);
   touch-action: none;
   user-select: none;
@@ -96,11 +100,11 @@ body {
 .panel h1,
 .panel h2 { margin: 0 0 12px; font-family: var(--pixel); line-height: 1.5; }
 .panel h1 { font-size: 16px; }
-.panel h2 { font-size: 11px; color: var(--brand); }
+.panel h2 { font-size: 11px; color: var(--green-text); }
 .panel p { margin: 0 0 12px; line-height: 1.4; }
 
-.tip { margin: 12px 0; padding: 10px 12px; text-align: left; background: #e8f3fa; border-left: 4px solid var(--brand); }
-.tip .label { display: block; margin-bottom: 6px; color: var(--brand); font: 9px var(--pixel); }
+.tip { margin: 12px 0; padding: 10px 12px; text-align: left; background: #eef7ea; border-left: 4px solid var(--green); }
+.tip .label { display: block; margin-bottom: 6px; color: var(--green-text); font: 9px var(--pixel); }
 
 .keys { margin: 12px 0; padding: 10px 12px; text-align: left; font-size: 14px; background: #f3efe0; }
 .keys div { margin: 4px 0; }
@@ -115,14 +119,17 @@ body {
   color: var(--ink);
   text-align: center;
   text-decoration: none;
-  background: var(--gold);
+  background: var(--yellow);
   border: 3px solid var(--ink);
   box-shadow: 3px 3px 0 var(--ink);
   cursor: pointer;
 }
 .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
 .btn:disabled { opacity: 0.6; cursor: default; }
-.btn.primary { background: var(--brand); color: #fff; }
+.btn:focus-visible,
+.logo:focus-visible,
+#controls button:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
+.btn.primary { background: var(--green); color: var(--ink); }
 .btn.secondary { background: #fff; }
 
 .stars { margin: 4px 0 8px; font-size: 26px; letter-spacing: 3px; color: #e0a800; }
@@ -131,7 +138,10 @@ body {
 .section { margin: 14px 0 2px; text-align: left; font: 9px var(--pixel); color: #4d5b66; }
 .proof { font-size: 13px; color: #4d5b66; }
 .note { margin-top: 10px; }
-.inline-link { font-weight: 700; color: var(--brand); }
+.logo { display: block; width: fit-content; margin: 0 auto 14px; }
+.logo img { display: block; height: 56px; width: auto; }
+.logo.small img { height: 34px; }
+.logo.small { margin: 16px auto 2px; }
 
 form.lead { margin-top: 18px; padding-top: 14px; border-top: 3px solid var(--ink); }
 form.lead input { display: block; width: 100%; margin-top: 8px; padding: 10px; font: inherit; font-size: 16px; background: #fff; border: 2px solid var(--ink); }

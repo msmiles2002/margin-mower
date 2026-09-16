@@ -26,6 +26,9 @@ const BOOT = '#5a3a20';
 const TIRE = '#262626';
 const HUB = '#cfcfcf';
 const BARK = '#6b4423';
+// BomData logo colors for the crew's shirts and caps
+const BRAND_GREEN = '#6FC062';
+const BRAND_YELLOW = '#FFCC49';
 
 const shadow = (x: number, base: number, w: number) => ellipse(x, base + 1, w, 3.5, 'rgba(0,0,0,.28)');
 
@@ -58,12 +61,12 @@ function rideOn(x: number, base: number, { air = 0, duck = false }: CrewPose): v
   line(x + 1, y - 18, x + 4, y - 30, OL, 2);
   ellipse(x + 4, y - 30, 4, 1.5, '#444', OL, 1.5);
   const d = duck ? 6 : 0;
-  roundRect(x - 12, y - 36 + d, 11, 14, 3, '#127DB9', OL, LW);
+  roundRect(x - 12, y - 36 + d, 11, 14, 3, BRAND_GREEN, OL, LW);
   rect(x - 11, y - 34 + d, 3, 10, 'rgba(255,255,255,.25)');
-  line(x - 4, y - 31 + d, x + 3, y - 30, '#127DB9', 3.5);
+  line(x - 4, y - 31 + d, x + 3, y - 30, BRAND_GREEN, 3.5);
   ellipse(x + 3.5, y - 30, 2, 2, SKIN, OL, 1);
   roundRect(x - 10, y - 24, 9, 6, 2, DENIM, OL, LW);
-  head(x - 6, y - 43 + d, '#f5c542');
+  head(x - 6, y - 43 + d, BRAND_YELLOW);
   ellipse(x - 9, y - 5, 7.5, 7.5, TIRE, OL, LW);
   ellipse(x - 9, y - 5, 3, 3, HUB, OL, 1);
   ellipse(x + 13, y - 3, 4.5, 4.5, TIRE, OL, LW);
@@ -89,7 +92,7 @@ function pushCrew(x: number, base: number, { air = 0, duck = false }: CrewPose):
     rect(x - 16, y - 16, 12, 2, '#e8e8e8');
     line(x - 7, y - 17, hx, hy, vest, 3.5);
     ellipse(hx, hy, 2, 2, SKIN, OL, 1);
-    head(x - 9, y - 27, '#127DB9');
+    head(x - 9, y - 27, BRAND_GREEN);
   } else {
     roundRect(x - 15, y - 15, 5, 15, 2, DENIM, OL, LW);
     roundRect(x - 9, y - 15, 5, 15, 2, DENIM, OL, LW);
@@ -100,7 +103,7 @@ function pushCrew(x: number, base: number, { air = 0, duck = false }: CrewPose):
     rect(x - 17, y - 19, 14, 2, '#e8e8e8');
     line(x - 7, y - 26, hx, hy, vest, 3.5);
     ellipse(hx, hy, 2, 2, SKIN, OL, 1);
-    head(x - 10, y - 36, '#127DB9');
+    head(x - 10, y - 36, BRAND_GREEN);
   }
 }
 
