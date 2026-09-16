@@ -1,9 +1,10 @@
-import { BUDGET_HOURS, GROUND, MOWER_SCREEN_X, WORLD_WIDTH as W } from '../rules/constants';
+import { BUDGET_HOURS, GROUND } from '../rules/constants';
 import type { Obstacle } from '../rules/levels';
-import { hoursUsed, type Run } from '../rules/run';
+import { cutPercent, hoursUsed, type Run } from '../rules/run';
 import { budgetGauge, type GaugeTone } from './budgetGauge';
+import { DESKTOP_VIEW, type View } from './canvas';
 import { OUTLINE as OL, context, poly, rect, roundRect, text } from './draw';
-import { drawBackdrop, drawClouds, drawLawn, drawSidewalkAndStreet, drawSky } from './scenery';
+import { drawBackdrop, drawClouds, drawFarLayer, drawLawn, drawSidewalkAndStreet, drawSky } from './scenery';
 import { drawBranch, drawBranchTrunk, drawCrew, drawObstacle, drawWeed } from './sprites';
 
 export type HintKey = 'hop' | 'duck' | 'weed';
@@ -59,16 +60,20 @@ function finishFlag(x: number): void {
 
 const GAUGE_COLORS: Record<GaugeTone, string> = { ok: '#6FC062', low: '#FFCC49', over: '#F47D6D' };
 
-function drawBudgetGauge(run: Run): void {
+// In-game status panel: property, crew and cut % on top; the labor gauge below.
+function drawStatusPanel(run: Run, view: View): void {
   const gauge = budgetGauge(hoursUsed(run), BUDGET_HOURS);
   const color = GAUGE_COLORS[gauge.tone];
+  const top = view.top + 5;
   const left = 16;
-  const width = W - 32;
-  roundRect(8, 5, W - 16, 27, 5, 'rgba(15, 18, 24, 0.78)');
-  text(gauge.label, left, 13, '7px "Press Start 2P"', '#ffffff', 'left');
-  text(gauge.value, left + width, 13, '8px "Press Start 2P"', color, 'right');
-  roundRect(left, 20, width, 7, 3, 'rgba(255, 255, 255, 0.18)');
-  if (gauge.fraction > 0) roundRect(left, 20, Math.max(6, width * gauge.fraction), 7, 3, color);
+  const width = view.width - 32;
+  roundRect(8, top, view.width - 16, 40, 5, 'rgba(15, 18, 24, 0.8)');
+  text(`${run.property.shortName} · ${run.crew.label}`.toUpperCase(), left, top + 9, '6px "Press Start 2P"', 'rgba(255, 255, 255, 0.75)', 'left');
+  text(`${cutPercent(run)}% CUT`, left + width, top + 9, '6px "Press Start 2P"', '#ffffff', 'right');
+  text(gauge.label, left, top + 21, '7px "Press Start 2P"', '#ffffff', 'left');
+  text(gauge.value, left + width, top + 21, '8px "Press Start 2P"', color, 'right');
+  roundRect(left, top + 28, width, 7, 3, 'rgba(255, 255, 255, 0.18)');
+  if (gauge.fraction > 0) roundRect(left, top + 28, Math.max(6, width * gauge.fraction), 7, 3, color);
 }
 
 export interface SceneOptions {
@@ -76,22 +81,29 @@ export interface SceneOptions {
   gauge: boolean;
 }
 
-const visible = (x: number, margin = 60) => x > -margin && x < W + margin;
 const isBranch = (o: Obstacle) => o.kind === 'branch';
 
-// Draws one full frame. Previews behind the title and intro panels turn the hints and the gauge off.
-export function drawScene(run: Run, seen: SeenHints, options: SceneOptions = { hints: true, gauge: true }): void {
+// Draws one full frame for the given camera view. Previews behind the title and intro panels turn the
+// hints and the status panel off.
+export function drawScene(
+  run: Run,
+  seen: SeenHints,
+  options: SceneOptions = { hints: true, gauge: true },
+  view: View = DESKTOP_VIEW,
+): void {
   const c = context();
-  const cam = run.dist - MOWER_SCREEN_X;
+  const cam = run.dist - view.mowerX;
+  const visible = (x: number, margin = 60) => x > -margin && x < view.width + margin;
   const shake = run.shake > 0 ? (Math.random() - 0.5) * 5 : 0;
   c.save();
   c.translate(shake, 0);
 
-  drawSky();
-  drawClouds(cam);
-  drawBackdrop(run.property.backdrop, cam);
-  drawSidewalkAndStreet(cam);
-  drawLawn(run.level, run.mowed, cam);
+  drawSky(view);
+  drawClouds(cam, view);
+  drawFarLayer(run.property.backdrop, cam, view);
+  drawBackdrop(run.property.backdrop, cam, view);
+  drawSidewalkAndStreet(cam, view);
+  drawLawn(run.level, run.mowed, cam, view.width);
 
   const branches = run.level.obstacles.filter(isBranch);
   for (const o of branches) if (visible(o.x - cam, 120)) drawBranchTrunk(o.x - cam, o.span);
@@ -102,7 +114,7 @@ export function drawScene(run: Run, seen: SeenHints, options: SceneOptions = { h
   const flagX = run.level.lengthPx - cam;
   if (visible(flagX)) finishFlag(flagX);
 
-  drawCrew(run.crew.id, MOWER_SCREEN_X, GROUND, { air: run.y, duck: run.ducking });
+  drawCrew(run.crew.id, view.mowerX, GROUND, { air: run.y, duck: run.ducking });
   for (const o of branches) if (visible(o.x - cam, 120)) drawBranch(o.x - cam, o.bottom, o.span);
 
   for (const p of run.particles) rect(p.x - cam, p.y, 2, 2, p.color);
@@ -110,7 +122,7 @@ export function drawScene(run: Run, seen: SeenHints, options: SceneOptions = { h
   if (options.hints) {
     for (const t of hintTargets(run)) {
       const sx = t.x - cam;
-      if (t.active && !seen.has(hintId(run, t.key)) && sx > MOWER_SCREEN_X - 10 && sx < W - 20) bubble(sx, t.y, t.label);
+      if (t.active && !seen.has(hintId(run, t.key)) && sx > view.mowerX - 10 && sx < view.width - 20) bubble(sx, t.y, t.label);
     }
   }
 
@@ -125,6 +137,6 @@ export function drawScene(run: Run, seen: SeenHints, options: SceneOptions = { h
     c.fillText(f.text, sx, f.y);
   }
 
-  if (options.gauge) drawBudgetGauge(run);
+  if (options.gauge) drawStatusPanel(run, view);
   c.restore();
 }

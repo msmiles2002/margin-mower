@@ -1,21 +1,25 @@
 // Background, street and lawn, ported from prototype/margin-mower-runner.html.
-import { COL, LAWN_BOTTOM, LAWN_TOP, WORLD_HEIGHT as H, WORLD_WIDTH as W } from '../rules/constants';
+import { COL, LAWN_BOTTOM, LAWN_TOP, WORLD_HEIGHT as H } from '../rules/constants';
+import type { View } from './canvas';
 import type { ColumnKind, Level, Property } from '../rules/levels';
 import { OUTLINE as OL, box, context, ellipse, hash, poly, rect, roundRect, shade, text } from './draw';
 
 const BAND = LAWN_BOTTOM - LAWN_TOP;
 
-export function drawSky(): void {
-  const g = context().createLinearGradient(0, 0, 0, LAWN_TOP);
-  g.addColorStop(0, '#5fb4ea');
+export function drawSky(view: View): void {
+  const g = context().createLinearGradient(0, view.top, 0, LAWN_TOP);
+  g.addColorStop(0, view.top < 0 ? '#3f9fe0' : '#5fb4ea');
   g.addColorStop(1, '#bfe6f7');
-  rect(0, 0, W, LAWN_TOP, g);
+  rect(0, view.top, view.width, LAWN_TOP - view.top, g);
 }
 
-export function drawClouds(cam: number): void {
-  for (let i = 0; i < 7; i++) {
+// Clouds spread over however much sky the view shows.
+export function drawClouds(cam: number, view: View): void {
+  const skyHeight = Math.max(50, LAWN_TOP - 90 - view.top);
+  const count = 7 + Math.max(0, Math.floor(-view.top / 60));
+  for (let i = 0; i < count; i++) {
     const x = (((i * 131 - cam * 0.1) % 640) + 640) % 640 - 80;
-    const y = 16 + ((i * 29) % 50);
+    const y = view.top + 16 + ((i * 53) % skyHeight);
     ellipse(x, y, 22, 7, '#ffffff');
     ellipse(x + 14, y - 5, 14, 8, '#ffffff');
     ellipse(x - 12, y - 2, 10, 5, '#ffffff');
@@ -95,18 +99,38 @@ function officeBuilding(x: number, base: number, variant: number): void {
   box(x + w / 2 - 14, base - 16, 28, 16, '#a8d8f0');
   rect(x + w / 2, base - 16, 1, 16, '#51677f');
   if (variant % 2 === 0) {
-    box(x + 8, top - 10, 44, 9, '#127DB9');
+    box(x + 8, top - 10, 54, 9, '#127DB9');
     text('N.VALLEY', x + 10, top - 5, '6px "Press Start 2P"', '#ffffff', 'left');
   }
   for (let hx = x - 10; hx < x + w + 20; hx += 14) ellipse(hx + 7, base + 3, 8, 6, '#3f8a3a', OL);
 }
 
-export function drawBackdrop(kind: Property['backdrop'], cam: number): void {
+// Distant hills (houses) or a pale skyline (offices) that fill the extra sky on tall phone screens.
+export function drawFarLayer(kind: Property['backdrop'], cam: number, view: View): void {
+  if (view.top > -20) return;
+  const base = LAWN_TOP - 10;
+  const shift = (((cam * 0.3) % 600) + 600) % 600;
+  if (kind === 'office') {
+    for (let x = -shift - 40; x < view.width + 60; x += 34) {
+      const h = 60 + (hash(Math.round((x + shift) / 34)) % 70);
+      rect(x, base - h, 30, h, '#a9c6de');
+      for (let wy = base - h + 8; wy < base - 20; wy += 10) rect(x + 5, wy, 20, 3, '#c3d8ea');
+    }
+    return;
+  }
+  for (let x = -shift - 120; x < view.width + 200; x += 150) {
+    ellipse(x + 75, base - 10, 110, 70, '#9cc98a');
+    ellipse(x + 150, base - 4, 90, 48, '#8bbd78');
+  }
+}
+
+export function drawBackdrop(kind: Property['backdrop'], cam: number, view: View): void {
   const base = LAWN_TOP - 10;
   const span = kind === 'office' ? 190 : 170;
   const parallax = 0.85;
   const start = Math.floor((cam * parallax - 200) / span);
-  for (let i = start; i < start + 5; i++) {
+  const count = Math.ceil((view.width + 400) / span) + 1;
+  for (let i = start; i < start + count; i++) {
     const x = i * span - cam * parallax;
     if (kind === 'office') officeBuilding(x, base, Math.abs(i));
     else house(x, base, Math.abs(i));
@@ -115,7 +139,8 @@ export function drawBackdrop(kind: Property['backdrop'], cam: number): void {
 
 const CAR_COLORS = ['#d64533', '#2f5fa8', '#f5c542', '#3f8a3a'];
 
-export function drawSidewalkAndStreet(cam: number): void {
+export function drawSidewalkAndStreet(cam: number, view: View): void {
+  const W = view.width;
   rect(0, LAWN_TOP - 10, W, 10, '#d7d3c9');
   rect(0, LAWN_TOP - 10, W, 1, '#f1eee6');
   rect(0, LAWN_TOP - 1, W, 1, '#b5b0a4');
@@ -125,6 +150,16 @@ export function drawSidewalkAndStreet(cam: number): void {
   rect(0, LAWN_BOTTOM + 7, W, 1, OL);
   rect(0, LAWN_BOTTOM + 8, W, H - LAWN_BOTTOM - 8, '#4a4b55');
   for (let x = -(((cam % 60) + 60) % 60); x < W; x += 60) rect(x, 248, 30, 3, '#f1c232');
+  const bottom = view.top + view.height;
+  if (bottom > H) {
+    // far side of the street on tall screens: curb, sidewalk, then front lawns
+    rect(0, H, W, 6, '#c9c5bb');
+    rect(0, H, W, 1, OL);
+    rect(0, H + 6, W, 10, '#d7d3c9');
+    for (let x = -(((cam % 40) + 40) % 40); x < W; x += 40) rect(x, H + 6, 1, 10, '#b5b0a4');
+    rect(0, H + 16, W, bottom - H - 16, '#4b9a37');
+    for (let x = -(((cam % 28) + 28) % 28); x < W; x += 28) ellipse(x + 14, H + 22, 12, 7, '#3f8a3a', OL);
+  }
   for (let i = Math.floor((cam - 300) / 420); i < Math.floor((cam + W) / 420) + 1; i++) {
     const x = i * 420 + 260 - cam;
     const color = CAR_COLORS[((i % 4) + 4) % 4];
@@ -156,11 +191,11 @@ function drawGrassColumn(x: number, col: number, mowed: boolean): void {
   }
 }
 
-export function drawLawn(level: Level, mowed: ReadonlySet<number>, cam: number): void {
+export function drawLawn(level: Level, mowed: ReadonlySet<number>, cam: number, viewWidth: number): void {
   const kindAt = (col: number): ColumnKind => (col >= 0 && col < level.columns.length ? level.columns[col] : 'walkway');
   const weedCols = new Set(level.weeds.map((w) => w.col));
   const first = Math.floor(cam / COL) - 1;
-  const last = Math.floor((cam + W) / COL) + 1;
+  const last = Math.floor((cam + viewWidth) / COL) + 1;
 
   for (let col = first; col <= last; col++) {
     const x = col * COL - cam;

@@ -28,7 +28,7 @@ body {
 #app {
   position: relative;
   height: 100%;
-  padding-top: 56px;
+  padding-top: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -44,22 +44,6 @@ body.playing { touch-action: none; -webkit-touch-callout: none; -webkit-user-sel
   user-select: none;
   -webkit-user-select: none;
 }
-
-#hud {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 8px 12px;
-  background: rgba(15, 18, 24, 0.95);
-  color: #fff;
-  font: 10px var(--pixel);
-}
-#hud-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 #controls {
   display: flex;
@@ -216,3 +200,50 @@ body.using-keyboard #controls button:focus-visible { outline: 3px solid var(--co
 form.lead { margin-top: 18px; padding-top: 14px; border-top: 3px solid var(--ink); }
 form.lead input { display: block; width: 100%; margin-top: 8px; padding: 10px; font: inherit; font-size: 16px; background: #fff; border: 2px solid var(--ink); }
 .form-status { min-height: 1em; margin-top: 6px; font-size: 13px; }
+
+/* ---------------------------------------------------------------- phones (body.mobile) */
+/* The game fills the top of the screen; while playing, the bottom becomes a big thumb pad. */
+body.mobile #app { padding-top: 0; }
+body.mobile #board { margin-top: 0; border: 0; }
+body.mobile #controls {
+  flex: none;
+  height: 34vh;
+  height: 34dvh;
+  width: 100%;
+  margin-top: 0;
+  gap: 10px;
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+  background: #1b1e25;
+}
+body.mobile #controls button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 #0b0c10;
+}
+body.mobile #controls button.active { transform: translateY(3px); box-shadow: 0 1px 0 #0b0c10; }
+body.mobile #controls small { margin-top: 10px; font-size: 14px; }
+
+/* Panels become a bottom sheet over the lower 60% of the screen, with the scene visible above. */
+body.mobile #overlay { padding: 0; }
+body.mobile .panel,
+body.mobile .panel.results {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 60%;
+  margin: auto 0 0;
+  padding: 20px 18px calc(20px + env(safe-area-inset-bottom));
+  border-width: 4px 0 0;
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -6px 0 rgba(0, 0, 0, 0.35);
+}
+/* Center the content in the sheet and keep the main button at the bottom, in thumb reach. */
+body.mobile .panel::before { content: ''; margin-top: auto; }
+body.mobile .panel > .btn:last-child,
+body.mobile .panel > .button-row:last-child { margin-top: auto; }
+body.mobile .panel > .btn:last-child { padding: 18px 12px; font-size: 13px; }
+body.mobile .celebrate { align-self: center; }

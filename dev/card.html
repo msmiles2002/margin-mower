@@ -25,6 +25,7 @@
       import { showPropertyCard } from '/src/screens/panels.ts';
       import { showResults } from '/src/screens/results.ts';
       import { summarizeRound } from '/src/rules/scoring.ts';
+      import { isMobileLayout } from '/src/render/canvas.ts';
 
       const base = { hoursUsed: 5.6, budgetHours: 6, mowedColumns: 80, mowableColumns: 80, weedsPulled: 4, weedCount: 4, hits: 0 };
       const cases = {
@@ -36,6 +37,7 @@
       const q = new URLSearchParams(location.search);
       const input = cases[q.get('case') ?? 'perfect'];
       await document.fonts.ready;
+      document.body.classList.toggle('mobile', isMobileLayout(innerWidth, innerHeight));
       const overlay = document.getElementById('overlay');
       if (q.get('screen') === 'results') {
         const scores = [scoreProperty({ ...base, hoursUsed: 5.63 }), scoreProperty(input)];

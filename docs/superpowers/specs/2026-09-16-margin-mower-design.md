@@ -101,11 +101,21 @@ Obstacle hit boxes (width × height, sitting on the ground):
 - **Grass clippings** fly while mowing, and bumps shake the screen and scatter debris.
 - **Weed feedback:** "+50" when a weed is pulled. A weed that passes out of reach shows "missed" and a red "!".
 - **HUD:** short property name · crew, and `NN% cut`.
-- **Labor budget gauge:** drawn at the top of the canvas during play only (hidden behind the title and intro screens).
-  - It reads "LABOR HOURS LEFT" with "x.x of 6.0" (the same tenths of an hour as the property card), and the bar drains as hours are used.
-  - The bar is green while more than 25% of the budget remains, and yellow after that.
-  - Once over budget, it reads "OVER BUDGET +x.x hrs" with a full coral bar.
-  - It replaces the old route-progress bar.
+- **Status panel** (inside the canvas, top of the view, during play only; hidden behind the title and intro screens):
+  - Top line: property short name · crew, and "NN% CUT".
+  - Then "LABOR HOURS LEFT" with "x.x of 6.0" (the same tenths as the property card), and a bar that drains as hours are used.
+  - The bar is green while more than 25% of the budget remains, then yellow; once over budget it reads "OVER BUDGET +x.x hrs" with a full coral bar.
+  - There is no separate HTML top bar.
+
+### Phone layout (`body.mobile`: any portrait screen, or narrower than 700px)
+
+- **Taller, zoomed-in view** (`viewFor` in `src/render/canvas.ts`):
+  - The camera shows 300 world units across (sprites about 1.7× bigger than the 480-unit desktop view), and the crew sits about 23% from the left.
+  - The view grows taller to fill the screen. The extra space adds sky and clouds on top, distant hills (houses) or a pale skyline (offices), and, below the street, a far curb, sidewalk and hedged front lawns (up to 90 units).
+  - Short, wide phone screens widen the view up to 480; very wide ones use the classic view.
+- **While playing:** the game fills the top of the screen, and the bottom 34% is a thumb pad with two large rounded buttons, "⬆ HOP (tap · flick up · ↑)" and "⬇ DUCK · PULL (tap · flick down · ↓)". Flicks still work anywhere on the page.
+- **Panels are bottom sheets:** full width, rounded top corners, at least 60% of the screen tall, content centered, and the main button at the bottom in thumb reach. The game is drawn in the space above the sheet, so the scene stays visible behind the title, intro and cards.
+- **Desktop is unchanged:** the letterboxed 480 × 270 view with the control buttons below it.
 
 ## Scoring (`src/rules/scoring.ts`)
 

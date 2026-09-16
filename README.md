@@ -67,6 +67,7 @@ On each of these:
 check both `https://msmiles2002.github.io/margin-mower/` and `https://bomdata.io/margin-mower/`:
 
 - [ ] ↑ / Space / tap hops; ↓ ducks (hold) and pulls weeds; the on-screen buttons do the same
+- [ ] On a phone held upright, the game fills the top of the screen, the thumb pad fills the bottom, and panels open as bottom sheets
 - [ ] Pressing the game controls never scrolls the page
 - [ ] Both properties, their property cards and the scorecard appear; Play again restarts
 - [ ] Share opens the phone share sheet (or downloads the image and opens LinkedIn on desktop)

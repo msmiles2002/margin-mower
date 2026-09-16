@@ -5,7 +5,6 @@ export const COL = 24;
 export const GROUND = 196;
 export const LAWN_TOP = 160;
 export const LAWN_BOTTOM = 216;
-export const MOWER_SCREEN_X = 130;
 
 export const GRAVITY = 930;
 export const HOP_VELOCITY = 300;
