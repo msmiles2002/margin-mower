@@ -80,11 +80,10 @@ export function showResults(
       shareButton.disabled = false;
     });
     return [
-      el('h2', { text: 'Weekly scorecard' }),
       el('h1', { className: 'rank', text: summary.title }),
       outcome(copy),
       el('div', { className: 'stars', text: starString(summary.stars, summary.maxStars) }),
-      ...headlineBlock(copy),
+      ...headlineBlock(copy, false),
       ...laborRows(copy.labor),
       el('div', { className: 'section', text: 'QUALITY' }),
       ...checkRows(copy.quality),

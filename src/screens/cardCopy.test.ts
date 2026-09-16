@@ -51,9 +51,9 @@ describe('propertyCardCopy', () => {
       { label: 'Budget', value: '6.0 hrs', tone: null },
       { label: 'Actual', value: '5.6 hrs', tone: null },
       { label: 'Under budget', value: '0.4 hrs', tone: 'good' },
-      { label: 'Callback penalty', value: '−0.1 hrs', tone: 'bad' },
+      { label: 'Quality penalty', value: '−0.1 hrs', tone: 'bad' },
     ]);
-    expect(c.headline).toEqual({ text: '0.3 labor hours truly saved', tone: 'good' });
+    expect(c.headline).toEqual({ text: '0.3 labor hours saved after quality penalties', tone: 'good' });
     expect(c.quality[1]).toEqual({ text: 'Weeds pulled: 3/4', ok: false });
     expect(c.quality[2]).toEqual({ text: '1 collision (+0.2 hrs)', ok: false });
     expect(c.callbackRisk).toBe('Callback risk: 1 missed item');
@@ -115,13 +115,14 @@ describe('shiftCardCopy', () => {
     expect(c.outcome).toEqual({ text: 'Fast route. One callback risk.', perfect: false });
     expect(c.efficiency).toBe('103% efficiency');
     expect(c.efficiencyCaption).toBe('Beat the budget by 3%');
-    expect(c.headline).toEqual({ text: '0.3 labor hours truly saved', tone: 'good' });
     expect(c.labor).toEqual([
       { label: 'Budget', value: '12.0 hrs', tone: null },
       { label: 'Actual', value: '11.6 hrs', tone: null },
       { label: 'Under budget', value: '0.4 hrs', tone: 'good' },
-      { label: 'Callback penalty', value: '−0.1 hrs', tone: 'bad' },
+      { label: 'Quality penalty', value: '−0.1 hrs', tone: 'bad' },
+      { label: 'Saved after quality penalties', value: '0.3 hrs', tone: 'good' },
     ]);
+    expect(c.takeaway).toEqual(['Fast only counts when the work is done right.', 'BomData shows where labor hours are won, lost, or hidden.']);
     expect(c.quality).toEqual([
       { text: 'Grass cut: 100%', ok: true },
       { text: 'Weeds pulled: 7/8', ok: false },
@@ -135,10 +136,24 @@ describe('shiftCardCopy', () => {
     expect(c.points).toBe('+2,080 pts');
   });
 
+  it('ends the math with the result after quality penalties', () => {
+    expect(shift({}, { hoursUsed: 5.8, weedsPulled: 2 }).labor.at(-1)).toEqual({ label: 'Saved after quality penalties', value: '0.4 hrs', tone: 'good' });
+    expect(shift({ hoursUsed: 6 }, { hoursUsed: 5.8, weedsPulled: 2 }).labor.at(-1)).toEqual({
+      label: 'Saved after quality penalties',
+      value: '0.0 hrs',
+      tone: 'warn',
+    });
+    expect(shift({ hoursUsed: 6 }, { hoursUsed: 5.9, weedsPulled: 0 }).labor.at(-1)).toEqual({
+      label: 'Over budget after quality penalties',
+      value: '0.3 hrs',
+      tone: 'bad',
+    });
+  });
+
   it('celebrates a perfect shift', () => {
     const c = shift({}, {});
     expect(c.outcome).toEqual({ text: 'On budget. Full quality.', perfect: true });
-    expect(c.headline).toEqual({ text: '0.8 labor hours saved', tone: 'good' });
+    expect(c.labor).toHaveLength(3);
     expect(c.callbackRisk).toBeNull();
   });
 });

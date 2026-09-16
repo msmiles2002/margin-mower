@@ -159,25 +159,25 @@ All scoring works in tenths of an hour, the unit every screen shows. Actual hour
    - Name, outcome line (badge when perfect), and stars out of 5.
    - **Big numbers:** "107% EFFICIENCY", its caption, and the labor headline:
      - "0.4 labor hours saved"
-     - "0.3 labor hours truly saved" (after callbacks)
+     - "0.3 labor hours saved after quality penalties"
      - "Callbacks ate the savings"
      - "Callbacks put you 0.1 hrs over budget"
      - "0.9 labor hours over budget"
      - "Right on budget"
-   - **Rows:** Budget and Actual, then Under budget (green) or Over budget (coral), then Callback penalty (−0.1 hrs, coral) when there is one.
+   - **Rows:** Budget and Actual, then Under budget (green) or Over budget (coral), then Quality penalty (−0.1 hrs, coral) when there is one.
    - **QUALITY:**
      - "Grass cut: N%", "Weeds pulled: x/y", and "No collisions" or "N collisions (+X hrs)", each with ✓/✗.
      - "Callback risk: N missed items" (amber) when there is one.
      - "Clean run bonus: +100" when there were no collisions.
    - Small "+1,140 pts".
    - **HEAD TO PROPERTY 2 →**, or **See my scorecard** after the last property.
-5. **Results / Weekly scorecard** (`shiftCardCopy`):
-   - "Weekly scorecard", the rank (e.g. **Route Pro**), the outcome line (e.g. "Fast route. One callback risk."), and stars out of 5.
-   - The same big numbers and rows as the property card, totaled across the shift (Budget 12.0 hrs).
+5. **Results scorecard** (`shiftCardCopy`):
+   - The rank (e.g. **Route Pro**), the outcome line (e.g. "Fast route. One callback risk."), and stars out of 5. There is no "Weekly scorecard" heading.
+   - "103% EFFICIENCY" and its caption, with no labor headline, then the same rows as the property card totaled across the shift (Budget 12.0 hrs). When there are quality penalties, the rows end with "Saved after quality penalties 0.3 hrs" (green, or amber at 0.0) or "Over budget after quality penalties 0.3 hrs" (coral).
    - **QUALITY:** combined checks plus the callback risk line.
    - **BY PROPERTY:** each property's name and "N% efficiency", with a short story such as "Clean job, under budget" or "Fast finish, one missed weed".
    - Small points.
-   - Takeaway: "**Fast work only pays when the work is done right.**" / "BomData helps landscaping teams see where labor hours are being won, lost, or hidden."
+   - Takeaway: "**Fast only counts when the work is done right.**" / "BomData shows where labor hours are won, lost, or hidden."
    - Buttons: **SHARE MY SCORE** (primary, green) with a status line, the small logo, **See how BomData works** (bomdata.io with UTM tags), the optional HubSpot form, and **Play again**.
    - The 8–10% claim is no longer shown.
    - Summary line: `Route Pro · 4/5 stars · 103% efficiency · 0.3 hrs saved · 2,080 pts`.

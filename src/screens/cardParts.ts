@@ -6,12 +6,12 @@ export function outcome(copy: CardCopy): HTMLDivElement {
   return el('div', { className: copy.outcome.perfect ? 'outcome celebrate' : 'outcome', text: copy.outcome.text });
 }
 
-// The big numbers: efficiency (with a plain-English caption) and the labor hours result.
-export function headlineBlock(copy: CardCopy): HTMLDivElement[] {
+// The big numbers: efficiency (with a plain-English caption) and, optionally, the labor hours result.
+export function headlineBlock(copy: CardCopy, withLaborHeadline = true): HTMLDivElement[] {
   return [
     el('div', { className: 'metric', text: copy.efficiency.toUpperCase() }),
-    el('div', { className: 'caption', text: copy.efficiencyCaption }),
-    el('div', { className: `headline ${copy.headline.tone}`, text: copy.headline.text }),
+    el('div', { className: withLaborHeadline ? 'caption' : 'caption spaced', text: copy.efficiencyCaption }),
+    ...(withLaborHeadline ? [el('div', { className: `headline ${copy.headline.tone}`, text: copy.headline.text })] : []),
   ];
 }
 

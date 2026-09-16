@@ -179,6 +179,8 @@ body.using-keyboard #controls button:focus-visible { outline: 3px solid var(--co
 .sub-note { padding: 2px 0 4px; text-align: left; font-size: 13px; color: #9a6a00; }
 .metric { margin-top: 6px; font: 20px/1.4 var(--pixel); }
 .caption { font-size: 13px; color: #4d5b66; }
+.caption.spaced { margin-bottom: 12px; }
+.row .value.warn { color: #9a6a00; }
 .headline { margin: 8px 0 10px; font-size: 18px; font-weight: 700; }
 .row .value.good { color: var(--green-text); }
 .row .value.bad { color: #c0503f; }

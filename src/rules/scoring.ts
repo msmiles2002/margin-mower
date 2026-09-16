@@ -26,7 +26,7 @@ export interface PropertyScore extends PropertyInput {
   callbackHours: number;
   // Budget − actual (negative when over budget).
   underHours: number;
-  // Under budget after callbacks (positive = truly saved, negative = over budget).
+  // Under budget after quality (callback) penalties (positive = saved, negative = over budget).
   netHours: number;
   stars: number;
   points: number;

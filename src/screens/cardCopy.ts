@@ -34,21 +34,30 @@ export function efficiencyCaption(efficiency: number): string {
   return `${100 - efficiency}% behind budget`;
 }
 
-export function laborLines(f: LaborFacts): LaborLine[] {
+// `withNet` ends the rows with the result after quality penalties (used on the final scorecard).
+export function laborLines(f: LaborFacts, withNet = false): LaborLine[] {
   const lines: LaborLine[] = [
     { label: 'Budget', value: hrs(f.budgetHours), tone: null },
     { label: 'Actual', value: hrs(f.hoursUsed), tone: null },
   ];
   if (f.underHours > 0) lines.push({ label: 'Under budget', value: hrs(f.underHours), tone: 'good' });
   if (f.underHours < 0) lines.push({ label: 'Over budget', value: hrs(-f.underHours), tone: 'bad' });
-  if (f.callbackHours > 0) lines.push({ label: 'Callback penalty', value: `−${hrs(f.callbackHours)}`, tone: 'bad' });
+  if (f.callbackHours > 0) {
+    lines.push({ label: 'Quality penalty', value: `−${hrs(f.callbackHours)}`, tone: 'bad' });
+    if (withNet && f.netHours >= 0) {
+      lines.push({ label: 'Saved after quality penalties', value: hrs(f.netHours), tone: f.netHours > 0 ? 'good' : 'warn' });
+    }
+    if (withNet && f.netHours < 0) {
+      lines.push({ label: 'Over budget after quality penalties', value: hrs(-f.netHours), tone: 'bad' });
+    }
+  }
   return lines;
 }
 
 export function laborHeadline(f: LaborFacts): { text: string; tone: Tone } {
   const net = formatHours(Math.abs(f.netHours));
   if (f.netHours > 0) {
-    return { text: `${net} labor hours ${f.callbackHours > 0 ? 'truly saved' : 'saved'}`, tone: 'good' };
+    return { text: `${net} labor hours saved${f.callbackHours > 0 ? ' after quality penalties' : ''}`, tone: 'good' };
   }
   if (f.netHours === 0) {
     return f.underHours > 0 ? { text: 'Callbacks ate the savings', tone: 'warn' } : { text: 'Right on budget', tone: 'good' };
@@ -122,8 +131,8 @@ export function propertyStory(s: PropertyScore): string {
 }
 
 export const TAKEAWAY: readonly string[] = [
-  'Fast work only pays when the work is done right.',
-  'BomData helps landscaping teams see where labor hours are being won, lost, or hidden.',
+  'Fast only counts when the work is done right.',
+  'BomData shows where labor hours are won, lost, or hidden.',
 ];
 
 export function shiftCardCopy(results: readonly NamedScore[], summary: RoundSummary): ShiftCardCopy {
@@ -138,7 +147,7 @@ export function shiftCardCopy(results: readonly NamedScore[], summary: RoundSumm
     efficiency: `${summary.efficiency}% efficiency`,
     efficiencyCaption: efficiencyCaption(summary.efficiency),
     headline: laborHeadline(summary),
-    labor: laborLines(summary),
+    labor: laborLines(summary, true),
     quality: [
       { text: `Grass cut: ${cut}%`, ok: scores.every((s) => s.cutStar) },
       { text: `Weeds pulled: ${weedsPulled}/${weedCount}`, ok: weedsPulled === weedCount },
