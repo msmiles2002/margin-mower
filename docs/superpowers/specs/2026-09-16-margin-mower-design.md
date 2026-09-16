@@ -76,7 +76,7 @@ It's a side-scrolling runner. The crew drives right automatically, and the camer
 | Push crew speed | 128 units/s; hit box height 43 standing, 34 ducking |
 | Crew hit box width | 20 (±10 around the crew's position) |
 | Weed reach | ±33 |
-| Bump stall | 1 s. The crew stops, the clock keeps running, and "+N min" floats up. |
+| Bump stall | 1 s. The crew stops, the clock keeps running, and "+x.x hrs" floats up. |
 | Start / end | Starts at position 12; ends at level length + 36 |
 | Frame step cap | 0.05 s |
 
@@ -102,14 +102,14 @@ Obstacle hit boxes (width × height, sitting on the ground):
 - **Weed feedback:** "+50" when a weed is pulled. A weed that passes out of reach shows "missed" and a red "!".
 - **HUD:** short property name · crew, and `NN% cut`.
 - **Labor budget gauge:** drawn at the top of the canvas during play only (hidden behind the title and intro screens).
-  - It reads "LABOR BUDGET" with the time left as h:mm, rounded up to the minute, and the bar drains as hours are used.
+  - It reads "LABOR HOURS LEFT" with "x.x of 6.0" (the same tenths of an hour as the property card), and the bar drains as hours are used.
   - The bar is green while more than 25% of the budget remains, and yellow after that.
-  - Once over budget, it reads "OVER BUDGET +h:mm" with a full coral bar.
+  - Once over budget, it reads "OVER BUDGET +x.x hrs" with a full coral bar.
   - It replaces the old route-progress bar.
 
 ## Scoring (per property, maximum 5 stars; round maximum 10)
 
-- **Efficiency %** = round(min(1, budget ÷ hours used) × 100).
+- **Efficiency %** = round(budget ÷ hours used × 100), not capped, so finishing early scores over 100% (6.0 budgeted in 5.6 actual is 107%).
   - Stars: above 95 → ★★★, above 80 → ★★, above 70 → ★, otherwise none.
 - **Quality:**
   - ★ for a 100% cut (floor of mowed ÷ mowable × 100 equals 100).
@@ -119,11 +119,12 @@ Obstacle hit boxes (width × height, sitting on the ground):
   - +50 per pulled weed.
   - When on budget and the cut is 100%: +10 per whole 0.1 hour under budget.
   - When over budget: −10 per whole 0.1 hour over.
+  - Clean run bonus: +100 when there were no collisions.
 - **Hours saved:** budget − hours used, counted only when on budget and both quality stars were earned.
 - **Round totals:**
   - Stars and points are summed across the properties.
   - Hours saved is summed and rounded to 0.1.
-  - Overall efficiency = round(min(1, total budget ÷ total hours used) × 100).
+  - Overall efficiency = round(total budget ÷ total hours used × 100).
 - **Titles by total stars:** 10 Margin Master, 8–9 Pro, 5–7 Crew Lead, 0–4 Rookie.
 - **Minimum star:** a player who never hops always cuts 100%, so every finished property earns at least one star.
 
@@ -142,19 +143,31 @@ Obstacle hit boxes (width × height, sitting on the ground):
    - "6.0 hrs budgeted" and a **LET’S MOW** button.
    - The level is drawn behind the panel.
 3. **Playing:** HUD, canvas and the two control buttons.
-4. **Property card:**
-   - Property name and stars out of 5.
-   - **EFFICIENCY:** % (hours used of budget) and 0–3 stars.
-   - **QUALITY:** "Grass cut: N%" with a star, and "Weeds pulled: x/y" with a star.
-   - A note on bumps ("2 bumps cost you 0.5 hrs." / "No bumps. Smooth driving.") and, when the cut wasn't 100%, "Hopping over grass left it uncut."
-   - Points, and **Next property** / **See my scorecard**.
+4. **Property card** (wording in `src/screens/cardCopy.ts`):
+   - Property name.
+   - **ON BUDGET. FULL QUALITY.**: a tilted yellow badge that pops in when the property is on budget with both quality stars.
+   - Stars out of 5.
+   - **LABOR PERFORMANCE:**
+     - "NNN% efficiency" with 0–3 stars.
+     - Budget and Actual (in hours).
+     - A variance line:
+       - green "0.4 hrs saved"
+       - amber "0.4 hrs under budget, but work was skipped" when a quality star is missing
+       - coral "0.9 hrs over budget"
+       - "Right on budget" when within a tenth of an hour
+   - **QUALITY:**
+     - "Grass cut: N%" ★, with "Hopping over grass left it uncut." under it when it isn't 100%.
+     - "Weeds pulled: x/y" ★.
+     - "No collisions ✓" with "Clean run bonus: +100", or "N collisions (+X hrs) ✗".
+   - **Payoff:** a large headline ("0.4 labor hours saved" / "0.9 labor hours over budget" / "No labor hours saved" / "Right on budget"), then smaller "+1,140 pts".
+   - **HEAD TO PROPERTY 2 →**, or **See my scorecard** after the last property.
 5. **Results:**
    - "Weekly scorecard", the title, and stars out of 10.
    - Summary line: `⭐ 8/10 · 97% efficiency · 2,330 pts · 0.8 hrs saved`.
    - "Real crews using BomData improved labor efficiency 8–10%." This line never appears on the share image.
    - **Book a demo** (always visible), **Share my score** with a status line, the optional HubSpot form, and **Play again**.
 
-Focus moves to each panel's first button, so Enter or Space works on a keyboard. Game keys are only handled while playing.
+Focus moves to each panel's first button, so Enter or Space works on a keyboard. The coral focus outline shows only after a key is pressed (`body.using-keyboard`), and pointer input hides it again. Game keys are only handled while playing.
 
 ## Visual style (style B, "bold cartoon")
 

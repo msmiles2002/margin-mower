@@ -66,7 +66,7 @@ function drawBudgetGauge(run: Run): void {
   const width = W - 32;
   roundRect(8, 5, W - 16, 27, 5, 'rgba(15, 18, 24, 0.78)');
   text(gauge.label, left, 13, '7px "Press Start 2P"', '#ffffff', 'left');
-  text(gauge.time, left + width, 13, '8px "Press Start 2P"', color, 'right');
+  text(gauge.value, left + width, 13, '8px "Press Start 2P"', color, 'right');
   roundRect(left, 20, width, 7, 3, 'rgba(255, 255, 255, 0.18)');
   if (gauge.fraction > 0) roundRect(left, 20, Math.max(6, width * gauge.fraction), 7, 3, color);
 }

@@ -29,8 +29,9 @@ export function link(label: string, className: string, href: string): HTMLAnchor
   return node;
 }
 
-export function row(label: Child, value: string): HTMLDivElement {
-  return el('div', { className: 'row' }, [el('span', {}, [label]), el('span', { className: 's', text: value })]);
+// A label/value line. `valueClass` styles the value: 's' (stars, default), 'value', 'check' or 'cross'.
+export function row(label: Child, value: string, valueClass = 's'): HTMLDivElement {
+  return el('div', { className: 'row' }, [el('span', {}, [label]), el('span', { className: valueClass, text: value })]);
 }
 
 // The BomData logo, linking to the BomData site.

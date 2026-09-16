@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { efficiencyPercent, efficiencyStars, scoreProperty, summarizeRound, titleFor, type PropertyInput } from './scoring';
+import { CLEAN_RUN_BONUS, efficiencyPercent, efficiencyStars, scoreProperty, summarizeRound, titleFor, type PropertyInput } from './scoring';
 
 const perfect: PropertyInput = {
   hoursUsed: 5.6,
@@ -11,21 +11,22 @@ const perfect: PropertyInput = {
   hits: 0,
 };
 
-describe('efficiency', () => {
+describe('efficiency (budget ÷ actual, not capped)', () => {
   it.each([
-    [5.6, 100],
+    [5.6, 107],
+    [6, 100],
     [6.2, 97],
     [6.3, 95],
     [7.4, 81],
     [7.5, 80],
     [8.5, 71],
     [8.6, 70],
-  ])('%s hours of 6 is %i%%', (used, pct) => {
+  ])('%s hours against a 6 hour budget is %i%%', (used, pct) => {
     expect(efficiencyPercent(used, 6)).toBe(pct);
   });
 
   it.each([
-    [100, 3],
+    [107, 3],
     [96, 3],
     [95, 2],
     [81, 2],
@@ -39,8 +40,16 @@ describe('efficiency', () => {
 
 describe('scoreProperty', () => {
   it('gives 5 stars for a clean, weed-free, on-budget job', () => {
-    const s = scoreProperty(perfect);
-    expect(s).toMatchObject({ efficiency: 100, efficiencyStars: 3, cut: 100, cutStar: true, weedStar: true, stars: 5 });
+    expect(scoreProperty(perfect)).toMatchObject({
+      efficiency: 107,
+      efficiencyStars: 3,
+      cut: 100,
+      cutStar: true,
+      weedStar: true,
+      collisionFree: true,
+      onBudget: true,
+      stars: 5,
+    });
   });
 
   it('needs every column for the cut star', () => {
@@ -54,19 +63,32 @@ describe('scoreProperty', () => {
     expect(scoreProperty({ ...perfect, weedsPulled: 3 }).weedStar).toBe(false);
   });
 
-  it('adds 10 points per tenth of an hour under budget when the cut is complete', () => {
-    // 80*10 + 4*50 + 4 tenths * 10
-    expect(scoreProperty(perfect).points).toBe(1040);
+  it('adds under-budget and clean-run bonuses', () => {
+    // 80*10 + 4*50 + 4 tenths * 10 + clean run
+    expect(scoreProperty(perfect).points).toBe(800 + 200 + 40 + CLEAN_RUN_BONUS);
+  });
+
+  it('only gives the clean run bonus with no collisions', () => {
+    const s = scoreProperty({ ...perfect, hits: 2 });
+    expect(s.collisionFree).toBe(false);
+    expect(s.points).toBe(1040);
   });
 
   it('gives no under-budget bonus when grass was skipped', () => {
-    // 79*10 + 4*50
-    expect(scoreProperty({ ...perfect, mowedColumns: 79 }).points).toBe(990);
+    expect(scoreProperty({ ...perfect, mowedColumns: 79 }).points).toBe(790 + 200 + CLEAN_RUN_BONUS);
   });
 
   it('subtracts 10 points per whole tenth of an hour over budget', () => {
-    // 800 + 200 - 3 tenths * 10
-    expect(scoreProperty({ ...perfect, hoursUsed: 6.35 }).points).toBe(970);
+    const s = scoreProperty({ ...perfect, hoursUsed: 6.35 });
+    expect(s.onBudget).toBe(false);
+    expect(s.points).toBe(800 + 200 - 30 + CLEAN_RUN_BONUS);
+  });
+
+  it('reports hours under and over budget', () => {
+    expect(scoreProperty(perfect).hoursUnder).toBeCloseTo(0.4);
+    expect(scoreProperty(perfect).hoursOver).toBe(0);
+    expect(scoreProperty({ ...perfect, hoursUsed: 6.5 }).hoursOver).toBeCloseTo(0.5);
+    expect(scoreProperty({ ...perfect, hoursUsed: 6.5 }).hoursUnder).toBe(0);
   });
 
   it('counts hours saved only for on-budget jobs with both quality stars', () => {
@@ -77,7 +99,7 @@ describe('scoreProperty', () => {
   });
 
   it('always gives an idle full-cut run at least one star', () => {
-    const s = scoreProperty({ ...perfect, hoursUsed: 11, weedsPulled: 0 });
+    const s = scoreProperty({ ...perfect, hoursUsed: 11, weedsPulled: 0, hits: 9 });
     expect(s.efficiencyStars).toBe(0);
     expect(s.stars).toBe(1);
   });
@@ -99,13 +121,13 @@ describe('titles and rounds', () => {
   it('totals a round', () => {
     const a = scoreProperty(perfect);
     const b = scoreProperty({ ...perfect, hoursUsed: 6.9, weedsPulled: 6, weedCount: 7 });
-    const summary = summarizeRound([a, b]);
-    expect(b.stars).toBe(3); // 87% -> 2 stars, cut star, no weed star
-    expect(summary).toEqual({
+    expect(b.efficiency).toBe(87);
+    expect(b.stars).toBe(3);
+    expect(summarizeRound([a, b])).toEqual({
       stars: 8,
       maxStars: 10,
-      efficiency: 96, // 12 / 12.5
-      points: 1040 + (800 + 300 - 90),
+      efficiency: 96, // 12 budgeted / 12.5 actual
+      points: 1140 + (800 + 300 - 90 + CLEAN_RUN_BONUS),
       hoursSaved: 0.4,
       title: 'Pro',
     });

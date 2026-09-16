@@ -1,4 +1,5 @@
-// The labor budget gauge at the top of the game: time left on the budget, draining as the crew works.
+// The labor gauge at the top of the game: budgeted hours left on this property, draining as the crew works.
+// It uses the same tenths-of-an-hour as the property card, so the two always agree.
 const EPSILON = 1e-9;
 export const LOW_FRACTION = 0.25;
 
@@ -6,21 +7,22 @@ export type GaugeTone = 'ok' | 'low' | 'over';
 
 export interface BudgetGauge {
   label: string;
-  time: string;
+  value: string;
   fraction: number;
   tone: GaugeTone;
 }
 
-// Hours as h:mm, rounded up to the next minute so the clock reads 0:00 only when the budget is gone.
-export function formatClock(hours: number): string {
-  const minutes = Math.max(0, Math.ceil(hours * 60 - 1e-6));
-  return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
-}
+const hours = (value: number) => Math.max(0, value).toFixed(1);
 
 export function budgetGauge(hoursUsed: number, budgetHours: number): BudgetGauge {
   if (hoursUsed > budgetHours + EPSILON) {
-    return { label: 'OVER BUDGET', time: `+${formatClock(hoursUsed - budgetHours)}`, fraction: 1, tone: 'over' };
+    return { label: 'OVER BUDGET', value: `+${hours(hoursUsed - budgetHours)} hrs`, fraction: 1, tone: 'over' };
   }
   const fraction = Math.max(0, 1 - hoursUsed / budgetHours);
-  return { label: 'LABOR BUDGET', time: formatClock(budgetHours - hoursUsed), fraction, tone: fraction > LOW_FRACTION ? 'ok' : 'low' };
+  return {
+    label: 'LABOR HOURS LEFT',
+    value: `${hours(budgetHours - hoursUsed)} of ${hours(budgetHours)}`,
+    fraction,
+    tone: fraction > LOW_FRACTION ? 'ok' : 'low',
+  };
 }

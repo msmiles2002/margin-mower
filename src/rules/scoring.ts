@@ -13,19 +13,25 @@ export interface PropertyInput {
 export interface PropertyScore extends PropertyInput {
   efficiency: number;
   efficiencyStars: number;
+  onBudget: boolean;
+  hoursUnder: number;
+  hoursOver: number;
   cut: number;
   cutStar: boolean;
   weedStar: boolean;
+  collisionFree: boolean;
   stars: number;
   points: number;
   hoursSaved: number;
 }
 
 export const MAX_STARS_PER_PROPERTY = 5;
+export const CLEAN_RUN_BONUS = 100;
 
+// Budgeted hours ÷ actual hours, like BomData's estimated-vs-actual framing. Finishing early scores over 100%.
 export function efficiencyPercent(hoursUsed: number, budgetHours: number): number {
   if (hoursUsed <= 0) return 100;
-  return Math.round(Math.min(1, budgetHours / hoursUsed) * 100);
+  return Math.round((budgetHours / hoursUsed) * 100);
 }
 
 export function efficiencyStars(percent: number): number {
@@ -43,6 +49,7 @@ export function scoreProperty(input: PropertyInput): PropertyScore {
   const cut = input.mowableColumns === 0 ? 100 : Math.floor((input.mowedColumns / input.mowableColumns) * 100);
   const cutStar = cut === 100;
   const weedStar = input.weedsPulled === input.weedCount;
+  const collisionFree = input.hits === 0;
   const onBudget = input.hoursUsed <= input.budgetHours + EPSILON;
 
   let points = input.mowedColumns * 10 + input.weedsPulled * 50;
@@ -51,14 +58,19 @@ export function scoreProperty(input: PropertyInput): PropertyScore {
   } else {
     points -= tenths(input.hoursUsed - input.budgetHours) * 10;
   }
+  if (collisionFree) points += CLEAN_RUN_BONUS;
 
   return {
     ...input,
     efficiency,
     efficiencyStars: effStars,
+    onBudget,
+    hoursUnder: onBudget ? input.budgetHours - input.hoursUsed : 0,
+    hoursOver: onBudget ? 0 : input.hoursUsed - input.budgetHours,
     cut,
     cutStar,
     weedStar,
+    collisionFree,
     stars: effStars + (cutStar ? 1 : 0) + (weedStar ? 1 : 0),
     points,
     hoursSaved: onBudget && cutStar && weedStar ? input.budgetHours - input.hoursUsed : 0,

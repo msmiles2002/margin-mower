@@ -1,0 +1,37 @@
+<!doctype html>
+<!--
+  Dev-only property card preview (not part of the build). With `yarn dev` running, open:
+    /dev/card.html                perfect run
+    /dev/card.html?case=over      over budget with collisions
+    /dev/card.html?case=skipped   finished early but skipped grass and weeds
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Margin Mower card preview</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app"><div id="overlay"></div></div>
+    <script type="module">
+      import '/src/style.css';
+      import { PROPERTIES } from '/src/rules/levels.ts';
+      import { scoreProperty } from '/src/rules/scoring.ts';
+      import { showPropertyCard } from '/src/screens/panels.ts';
+
+      const base = { hoursUsed: 5.6, budgetHours: 6, mowedColumns: 80, mowableColumns: 80, weedsPulled: 4, weedCount: 4, hits: 0 };
+      const cases = {
+        perfect: base,
+        over: { ...base, hoursUsed: 6.9, hits: 3, weedsPulled: 3 },
+        skipped: { ...base, mowedColumns: 70, weedsPulled: 2 },
+      };
+      const input = cases[new URLSearchParams(location.search).get('case') ?? 'perfect'];
+      await document.fonts.ready;
+      showPropertyCard(document.getElementById('overlay'), PROPERTIES[0], scoreProperty(input), 0.2, 0, 2);
+    </script>
+  </body>
+</html>

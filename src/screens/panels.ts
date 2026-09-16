@@ -2,7 +2,8 @@ import { config, withUtm } from '../config';
 import { BUDGET_HOURS } from '../rules/constants';
 import type { Property } from '../rules/levels';
 import { MAX_STARS_PER_PROPERTY, type PropertyScore } from '../rules/scoring';
-import { formatHours, formatPoints, starString } from '../share/text';
+import { formatHours, starString } from '../share/text';
+import { propertyCardCopy } from './cardCopy';
 import { button, el, logo, row, showPanel, waitFor } from './dom';
 
 export function showTitle(overlay: HTMLElement): Promise<void> {
@@ -33,12 +34,11 @@ export function showIntro(overlay: HTMLElement, property: Property, index: numbe
   ]);
 }
 
-function bumpNote(score: PropertyScore, hoursPerBump: number): string {
-  const bumps =
-    score.hits === 0
-      ? 'No bumps. Smooth driving.'
-      : `${score.hits} bump${score.hits > 1 ? 's' : ''} cost you ${formatHours(score.hits * hoursPerBump)} hrs.`;
-  return score.cutStar ? bumps : `${bumps} Hopping over grass left it uncut.`;
+// The pixel font has no arrow glyph, so the arrow is drawn in the body font.
+function nextButton(label: string, onClick: () => void): HTMLButtonElement {
+  const node = button(label, 'primary', onClick);
+  node.append(el('span', { className: 'arrow', text: ' →' }));
+  return node;
 }
 
 export function showPropertyCard(
@@ -46,23 +46,31 @@ export function showPropertyCard(
   property: Property,
   score: PropertyScore,
   hoursPerBump: number,
-  isLast: boolean,
+  index: number,
+  total: number,
 ): Promise<void> {
+  const copy = propertyCardCopy(score, hoursPerBump);
   const star = (earned: boolean) => (earned ? '★' : '☆');
   return waitFor<void>(overlay, (done) => [
     el('h1', { text: property.name }),
+    ...(copy.celebration === null ? [] : [el('div', { className: 'celebrate', text: copy.celebration })]),
     el('div', { className: 'stars', text: starString(score.stars, MAX_STARS_PER_PROPERTY) }),
-    el('div', { className: 'section', text: 'EFFICIENCY' }),
-    row(
-      el('span', {}, [`${score.efficiency}% `, el('small', { text: `(${formatHours(score.hoursUsed)} of ${formatHours(score.budgetHours)} hrs)` })]),
-      starString(score.efficiencyStars, 3),
-    ),
+    el('div', { className: 'section', text: 'LABOR PERFORMANCE' }),
+    row(el('b', { text: copy.efficiency }), starString(score.efficiencyStars, 3)),
+    row('Budget', copy.budget, 'value'),
+    row('Actual', copy.actual, 'value'),
+    el('div', { className: `variance ${copy.variance.tone}`, text: copy.variance.text }),
     el('div', { className: 'section', text: 'QUALITY' }),
     row(`Grass cut: ${score.cut}%`, star(score.cutStar)),
+    ...(score.cutStar ? [] : [el('div', { className: 'sub-note', text: 'Hopping over grass left it uncut.' })]),
     row(`Weeds pulled: ${score.weedsPulled}/${score.weedCount}`, star(score.weedStar)),
-    el('p', { className: 'proof note', text: bumpNote(score, hoursPerBump) }),
-    el('p', {}, [el('b', { text: `${formatPoints(score.points)} pts` })]),
-    button(isLast ? 'See my scorecard' : 'Next property', 'primary', () => done()),
+    row(copy.collisions.text, copy.collisions.ok ? '✓' : '✗', copy.collisions.ok ? 'check' : 'cross'),
+    ...(copy.cleanRunBonus === null ? [] : [el('div', { className: 'bonus', text: copy.cleanRunBonus })]),
+    el('div', { className: 'payoff' }, [
+      el('div', { className: `headline ${copy.variance.tone}`, text: copy.headline }),
+      el('div', { className: 'points', text: copy.points }),
+    ]),
+    nextButton(index + 1 < total ? `HEAD TO PROPERTY ${index + 2}` : 'See my scorecard', () => done()),
   ]);
 }
 

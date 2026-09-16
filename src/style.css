@@ -136,15 +136,48 @@ body.playing { touch-action: none; -webkit-touch-callout: none; -webkit-user-sel
 }
 .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
 .btn:disabled { opacity: 0.6; cursor: default; }
+.btn .arrow { font: 700 18px/1 var(--body); vertical-align: -1px; }
 .btn:focus-visible,
 .logo:focus-visible,
-#controls button:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
+#controls button:focus-visible { outline: none; }
+body.using-keyboard .btn:focus-visible,
+body.using-keyboard .logo:focus-visible,
+body.using-keyboard #controls button:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
 .btn.primary { background: var(--green); color: var(--ink); }
 .btn.secondary { background: #fff; }
 
 .stars { margin: 4px 0 8px; font-size: 26px; letter-spacing: 3px; color: #e0a800; }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 0; text-align: left; border-bottom: 2px dashed #d8d2bf; }
 .row .s { white-space: nowrap; font-size: 18px; color: #e0a800; }
+.row .value { white-space: nowrap; font-weight: 700; }
+.row .check { font-size: 18px; font-weight: 700; color: var(--green-text); }
+.row .cross { font-size: 18px; font-weight: 700; color: #c0503f; }
+.celebrate {
+  display: inline-block;
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  font: 10px/1.5 var(--pixel);
+  color: var(--ink);
+  background: var(--yellow);
+  border: 2px solid var(--ink);
+  transform: rotate(-2deg);
+  animation: celebrate 0.6s ease-out;
+}
+@keyframes celebrate {
+  from { transform: rotate(-2deg) scale(0.4); opacity: 0; }
+  60% { transform: rotate(-2deg) scale(1.15); opacity: 1; }
+  to { transform: rotate(-2deg) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .celebrate { animation: none; } }
+.variance { padding: 6px 0 2px; text-align: left; font-weight: 700; }
+.variance.good, .headline.good { color: var(--green-text); }
+.variance.warn, .headline.warn { color: #9a6a00; }
+.variance.bad, .headline.bad { color: #c0503f; }
+.bonus { padding-top: 4px; text-align: left; font-size: 13px; font-weight: 700; color: var(--green-text); }
+.sub-note { padding: 2px 0 4px; text-align: left; font-size: 13px; color: #9a6a00; }
+.payoff { margin: 14px 0 4px; }
+.payoff .headline { font-size: 17px; font-weight: 700; }
+.payoff .points { margin-top: 2px; font-size: 13px; color: #4d5b66; }
 .section { margin: 14px 0 2px; text-align: left; font: 9px var(--pixel); color: #4d5b66; }
 .proof { font-size: 13px; color: #4d5b66; }
 .note { margin-top: 10px; }

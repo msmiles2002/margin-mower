@@ -31,6 +31,10 @@ const hud: HudElements = {
   controls: byId('controls', HTMLDivElement),
 };
 
+// Focus outlines only after keyboard use; panels still pre-focus their main button so Enter works.
+window.addEventListener('keydown', () => document.body.classList.add('using-keyboard'));
+window.addEventListener('pointerdown', () => document.body.classList.remove('using-keyboard'));
+
 window.addEventListener('error', () => showFatal(overlay));
 window.addEventListener('unhandledrejection', () => showFatal(overlay));
 
@@ -71,7 +75,7 @@ async function playRound(): Promise<RoundSummary> {
 
     const score = scoreProperty(resultOf(run));
     scores.push(score);
-    await showPropertyCard(overlay, property, score, STALL_SECONDS * run.hoursPerSecond, index === PROPERTIES.length - 1);
+    await showPropertyCard(overlay, property, score, STALL_SECONDS * run.hoursPerSecond, index, PROPERTIES.length);
   }
   return summarizeRound(scores);
 }
