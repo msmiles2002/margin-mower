@@ -1,10 +1,9 @@
 import { config, withUtm } from '../config';
 import { BUDGET_HOURS } from '../rules/constants';
-import type { Crew } from '../rules/crews';
 import type { Property } from '../rules/levels';
 import { MAX_STARS_PER_PROPERTY, type PropertyScore } from '../rules/scoring';
 import { formatHours, formatPoints, starString } from '../share/text';
-import { button, el, logo, row, showPanel, waitFor, withBold } from './dom';
+import { button, el, logo, row, showPanel, waitFor } from './dom';
 
 export function showTitle(overlay: HTMLElement): Promise<void> {
   return waitFor<void>(overlay, (done) => [
@@ -16,24 +15,21 @@ export function showTitle(overlay: HTMLElement): Promise<void> {
   ]);
 }
 
-function controlsHelp(crew: Crew): HTMLDivElement {
-  const line = (label: string, rest: string) => el('div', {}, [el('b', { text: label }), rest]);
-  return el('div', { className: 'keys' }, [
-    line('⬆ Hop', ` over ${crew.canDuck ? 'rocks, shrubs and neighbors' : 'sprinklers, picnic tables and dog walkers'}: tap or flick up (↑ or Space)`),
-    ...(crew.canDuck ? [line('⬇ Duck', ' under low branches: flick down (↓)')] : []),
-    line('⬇ Pull', ' weeds as you pass over them: flick down (↓)'),
-    el('div', { className: 'keys-note', text: 'Only hop when you need to: grass you fly over doesn’t get cut.' }),
-  ]);
-}
+// Lines separated by <br>.
+const lines = (values: readonly string[]) => values.flatMap((v, i) => (i === 0 ? [v] : [el('br'), v]));
 
-export function showIntro(overlay: HTMLElement, property: Property, crew: Crew, index: number, total: number): Promise<void> {
+export function showIntro(overlay: HTMLElement, property: Property, index: number, total: number): Promise<void> {
+  const { pitch, controls, warning } = property.intro;
   return waitFor<void>(overlay, (done) => [
     el('h2', { text: `Property ${index + 1} of ${total}` }),
     el('h1', { text: property.name }),
-    el('div', { className: 'tip' }, [el('b', { className: 'label', text: 'BomData heads-up' }), ...withBold(property.tip)]),
-    controlsHelp(crew),
-    el('p', { text: `Budget: ${formatHours(BUDGET_HOURS)} hrs` }),
-    button('Go!', 'primary', () => done()),
+    el('div', { className: 'tip' }, lines(pitch)),
+    el('div', { className: 'keys' }, [
+      ...controls.map((c) => el('div', {}, [el('b', { text: c.key }), c.rest])),
+      el('div', { className: 'keys-note' }, lines(warning)),
+    ]),
+    el('p', { text: `${formatHours(BUDGET_HOURS)} hrs budgeted` }),
+    button('LET’S MOW', 'primary', () => done()),
   ]);
 }
 

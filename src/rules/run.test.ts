@@ -8,7 +8,7 @@ const noEffects = () => 0.99; // never spawns clippings; bursts still work
 const step = 1 / 60;
 
 function testProperty(level: string, crew: CrewId = 'push'): Property {
-  return { id: 'oakCreek', name: 'Test', shortName: 'Test', crew, backdrop: 'hoa', tip: '**push crew**', level };
+  return { id: 'oakCreek', name: 'Test', shortName: 'Test', crew, backdrop: 'hoa', intro: { pitch: [], controls: [], warning: [] }, level };
 }
 
 function advanceUntil(run: Run, done: (r: Run) => boolean, maxSeconds = 30): void {

@@ -64,7 +64,18 @@ describe('PROPERTIES', () => {
     expect(level.obstacles.some((o) => o.kind === 'neighbor')).toBe(true);
   });
 
-  it('marks the crew name in each tip', () => {
-    for (const p of PROPERTIES) expect(p.tip).toMatch(/\*\*.+ crew\*\*/);
+  it('has the approved North Valley intro copy', () => {
+    expect(PROPERTIES[0].intro).toEqual({
+      pitch: ['Open turf + no trees = a good ride-on job.', 'Move cleanly and this property should come in under budget.'],
+      controls: [
+        { key: '↑ HOP', rest: ' obstacles' },
+        { key: '↓ PULL WEEDS', rest: ' as you pass' },
+      ],
+      warning: ['Don’t overdo the jumping.', 'Airborne mowers don’t cut grass.'],
+    });
+  });
+
+  it('tells Oak Creek players how to duck', () => {
+    expect(PROPERTIES[1].intro.controls.map((c) => c.key)).toContain('↓ DUCK');
   });
 });

@@ -130,13 +130,16 @@ Obstacle hit boxes (width × height, sitting on the ground):
 ## Screens
 
 1. **Title:** the BomData logo, "Margin Mower", "You’ve got 6 hours. Don’t blow the labor budget." (bold), "Two properties. One crew. / Finish the route before your hours run out." and **Start shift**. The first property is drawn behind the panel with no hint bubbles.
-2. **Property intro:**
+2. **Property intro** (copy lives in each property's `intro` in `levels.ts`):
    - "Property N of 2" and the property name.
-   - A BomData heads-up card:
-     - North Valley: "Wide open turf, no trees. BomData matched a **ride-on crew** to this site so you can move fast."
-     - Oak Creek: "Low branches, weedy beds, and neighbors out for a walk. BomData matched a **push crew** that can duck under trees and get into the beds."
-   - Controls for that crew, plus the line "Only hop when you need to: grass you fly over doesn't get cut."
-   - "Budget: 6.0 hrs" and a **Go!** button.
+   - A pitch box with no label.
+     - North Valley: "Open turf + no trees = a good ride-on job." / "Move cleanly and this property should come in under budget."
+     - Oak Creek: "Low branches, weedy beds, and neighbors out for a walk." / "BomData matched a push crew that can duck under trees and get into the beds."
+   - Control lines with the key in bold:
+     - North Valley: "**↑ HOP** obstacles" and "**↓ PULL WEEDS** as you pass".
+     - Oak Creek: adds "**↓ DUCK** under low branches", and its HOP line reads "rocks, shrubs and neighbors".
+   - The warning "Don’t overdo the jumping." / "Airborne mowers don’t cut grass."
+   - "6.0 hrs budgeted" and a **LET’S MOW** button.
    - The level is drawn behind the panel.
 3. **Playing:** HUD, canvas and the two control buttons.
 4. **Property card:**

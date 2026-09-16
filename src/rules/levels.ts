@@ -32,14 +32,21 @@ export interface Level {
   lengthPx: number;
 }
 
+export interface IntroCopy {
+  // Short lines under the property name.
+  pitch: readonly string[];
+  // Control lines: `key` is shown bold, followed by `rest`.
+  controls: readonly { key: string; rest: string }[];
+  warning: readonly string[];
+}
+
 export interface Property {
   id: 'northValley' | 'oakCreek';
   name: string;
   shortName: string;
   crew: CrewId;
   backdrop: 'office' | 'hoa';
-  // `**text**` marks the bold crew name.
-  tip: string;
+  intro: IntroCopy;
   level: string;
 }
 
@@ -111,7 +118,14 @@ export const PROPERTIES: readonly Property[] = [
     shortName: 'North Valley',
     crew: 'rideOn',
     backdrop: 'office',
-    tip: 'Wide open turf, no trees. BomData matched a **ride-on crew** to this site so you can move fast.',
+    intro: {
+      pitch: ['Open turf + no trees = a good ride-on job.', 'Move cleanly and this property should come in under budget.'],
+      controls: [
+        { key: '↑ HOP', rest: ' obstacles' },
+        { key: '↓ PULL WEEDS', rest: ' as you pass' },
+      ],
+      warning: ['Don’t overdo the jumping.', 'Airborne mowers don’t cut grass.'],
+    },
     level:
       '..........__s__........__r__......bwbb......__c__.........__s__....__D__........bbwb.....__s__..__r__.........__c__......bwbbwb.......__r__..........',
   },
@@ -121,7 +135,18 @@ export const PROPERTIES: readonly Property[] = [
     shortName: 'Oak Creek',
     crew: 'push',
     backdrop: 'hoa',
-    tip: 'Low branches, weedy beds, and neighbors out for a walk. BomData matched a **push crew** that can duck under trees and get into the beds.',
+    intro: {
+      pitch: [
+        'Low branches, weedy beds, and neighbors out for a walk.',
+        'BomData matched a push crew that can duck under trees and get into the beds.',
+      ],
+      controls: [
+        { key: '↑ HOP', rest: ' rocks, shrubs and neighbors' },
+        { key: '↓ DUCK', rest: ' under low branches' },
+        { key: '↓ PULL WEEDS', rest: ' as you pass' },
+      ],
+      warning: ['Don’t overdo the jumping.', 'Airborne mowers don’t cut grass.'],
+    },
     level:
       '........_r_......BB.....bwbwb...._h_....BB.._L_.....bwbbw...BBB...._h_..bwb...._h_...BB..._r_....bbwbwb....BB.._h_........',
   },

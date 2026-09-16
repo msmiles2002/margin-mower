@@ -57,7 +57,7 @@ async function playRound(): Promise<RoundSummary> {
     const run = createRun(property);
     shown = run;
     redraw();
-    await showIntro(overlay, property, run.crew, index, PROPERTIES.length);
+    await showIntro(overlay, property, index, PROPERTIES.length);
 
     showHud(hud, run);
     controls.setRun(run);
