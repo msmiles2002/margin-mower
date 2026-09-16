@@ -152,7 +152,7 @@ Obstacle hit boxes (width × height, sitting on the ground):
      - Budget and Actual (in hours).
      - A variance line:
        - green "0.4 hrs saved"
-       - amber "0.4 hrs under budget, but work was skipped" when a quality star is missing
+       - amber "0.4 hrs under budget, but a callback is required" when a quality star is missing
        - coral "0.9 hrs over budget"
        - "Right on budget" when within a tenth of an hour
    - **QUALITY:**
@@ -166,7 +166,7 @@ Obstacle hit boxes (width × height, sitting on the ground):
    - **LABOR PERFORMANCE:**
      - Overall efficiency with 0–3 stars.
      - Budget 12.0 hrs and the actual total.
-     - A net variance line: "0.8 hrs saved", "0.5 hrs over budget", "0.8 hrs under budget, 0.4 hrs saved", "… but work was skipped", or "Right on budget".
+     - A net variance line: "0.8 hrs saved", "0.5 hrs over budget", "0.8 hrs under budget, 0.4 hrs saved", "… but a callback is required", or "Right on budget".
    - **QUALITY:** combined grass cut %, weeds pulled and collisions, each with ✓ or ✗.
    - **BY PROPERTY:** each property's short name, its efficiency and its stars out of 5.
    - **Payoff:** the labor-hours headline, then smaller "+2,280 pts".

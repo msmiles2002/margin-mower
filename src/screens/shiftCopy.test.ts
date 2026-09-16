@@ -59,7 +59,7 @@ describe('shiftCardCopy', () => {
 
   it('says no hours saved when every early finish skipped work', () => {
     const c = shift({ weedsPulled: 0 }, { weedsPulled: 0 });
-    expect(c.variance).toEqual({ text: '0.8 hrs under budget, but work was skipped', tone: 'warn' });
+    expect(c.variance).toEqual({ text: '0.8 hrs under budget, but a callback is required', tone: 'warn' });
     expect(c.headline).toBe('No labor hours saved');
   });
 

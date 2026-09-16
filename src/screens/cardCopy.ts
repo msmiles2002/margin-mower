@@ -34,7 +34,7 @@ export function propertyCardCopy(score: PropertyScore, hoursPerBump: number): Pr
     variance = { text: `${hrs(score.hoursUnder)} saved`, tone: 'good' };
     headline = `${formatHours(score.hoursUnder)} labor hours saved`;
   } else {
-    variance = { text: `${hrs(score.hoursUnder)} under budget, but work was skipped`, tone: 'warn' };
+    variance = { text: `${hrs(score.hoursUnder)} under budget, but a callback is required`, tone: 'warn' };
     headline = 'No labor hours saved';
   }
 
@@ -97,7 +97,7 @@ export function shiftCardCopy(results: readonly NamedScore[], summary: RoundSumm
     variance = { text: 'Right on budget', tone: 'good' };
     headline = 'Right on budget';
   } else if (isZero(saved)) {
-    variance = { text: `${hrs(under)} under budget, but work was skipped`, tone: 'warn' };
+    variance = { text: `${hrs(under)} under budget, but a callback is required`, tone: 'warn' };
     headline = 'No labor hours saved';
   } else if (formatHours(saved) === formatHours(under)) {
     variance = { text: `${hrs(saved)} saved`, tone: 'good' };

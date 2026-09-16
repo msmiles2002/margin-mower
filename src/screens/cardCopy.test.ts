@@ -31,7 +31,7 @@ describe('propertyCardCopy', () => {
   it('does not count early finishes as savings when work was skipped', () => {
     const c = copy({ mowedColumns: 70 });
     expect(c.celebration).toBeNull();
-    expect(c.variance).toEqual({ text: '0.4 hrs under budget, but work was skipped', tone: 'warn' });
+    expect(c.variance).toEqual({ text: '0.4 hrs under budget, but a callback is required', tone: 'warn' });
     expect(c.headline).toBe('No labor hours saved');
   });
 
