@@ -216,7 +216,7 @@ Focus moves to each panel's first button, so Enter or Space works on a keyboard.
   - The crew wear green and yellow.
 - **Logo:** `src/assets/bomdata-logo.png` (the bomdata.io logo with dark text on a transparent background) appears:
   - at the top of the title panel, linking to bomdata.io
-  - above **Book a demo** on the scorecard
+  - above **See how BomData works** on the scorecard
   - in the top-left corner of the share image
 
 ## Build
