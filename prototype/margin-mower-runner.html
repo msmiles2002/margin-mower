@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Margin Mower Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<style>
+  :root { --brand:#127db9; --ink:#1d2b36; --paper:#fffdf5; --gold:#f5c542; --pixel:'Press Start 2P',monospace; --body:'DM Sans',Arial,sans-serif; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:#23272f; color:var(--ink); font-family:var(--body); overflow:hidden; }
+  #app { position:relative; height:100%; padding-top:56px; display:flex; flex-direction:column; align-items:center; }
+  #board { margin-top:8px; touch-action:none; user-select:none; -webkit-user-select:none; border:3px solid #111; }
+  #hud { position:absolute; top:0; left:0; right:0; height:56px; display:none; align-items:center; gap:14px; padding:8px 12px; background:rgba(15,18,24,.95); color:#fff; font:10px var(--pixel); }
+  #hud .name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #clock.over { color:#ff7a6b; }
+  #controls { display:none; gap:12px; margin-top:14px; width:min(calc(100vw - 32px), 560px); }
+  #controls button { flex:1; padding:18px 8px; font:12px/1.5 var(--pixel); border:3px solid #111; box-shadow:3px 3px 0 #111; background:var(--gold); color:var(--ink); touch-action:none; user-select:none; -webkit-user-select:none; }
+  #controls button.active { transform:translate(2px,2px); box-shadow:1px 1px 0 #111; }
+  #controls small { display:block; font:11px var(--body); margin-top:4px; opacity:.7; }
+  .panel { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(calc(100vw - 32px),420px); max-height:calc(100vh - 32px); overflow:auto; background:var(--paper); border:4px solid var(--ink); box-shadow:6px 6px 0 rgba(0,0,0,.45); padding:20px 16px; text-align:center; z-index:5; }
+  h1,h2 { font-family:var(--pixel); line-height:1.5; margin:0 0 12px; } h1 { font-size:16px; } h2 { font-size:11px; color:var(--brand); }
+  p { margin:0 0 12px; line-height:1.4; }
+  .tip { background:#e8f3fa; border-left:4px solid var(--brand); text-align:left; padding:10px 12px; margin:12px 0; }
+  .tip b.label { display:block; color:var(--brand); font:9px var(--pixel); margin-bottom:6px; }
+  .keys { text-align:left; font-size:14px; background:#f3efe0; padding:10px 12px; margin:12px 0; }
+  .keys div { margin:4px 0; }
+  .btn { display:block; width:100%; margin-top:10px; padding:14px 12px; font:11px/1.4 var(--pixel); color:var(--ink); background:var(--gold); border:3px solid var(--ink); box-shadow:3px 3px 0 var(--ink); cursor:pointer; text-decoration:none; }
+  .btn:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+  .btn.primary { background:var(--brand); color:#fff; } .btn.secondary { background:#fff; }
+  .stars { font-size:26px; letter-spacing:3px; color:#e0a800; margin:4px 0 8px; }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:7px 0; border-bottom:2px dashed #d8d2bf; text-align:left; }
+  .row .s { color:#e0a800; white-space:nowrap; font-size:18px; }
+  .section { font:9px var(--pixel); color:#4d5b66; text-align:left; margin:14px 0 2px; }
+  .proof { font-size:13px; color:#4d5b66; }
+  .proto { position:fixed; bottom:4px; right:6px; font:8px var(--pixel); color:rgba(255,255,255,.4); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud"><span class="name" id="hudName"></span><span id="clock"></span><span id="cov"></span></div>
+  <canvas id="board"></canvas>
+  <div id="controls">
+    <button id="hopBtn">⬆ HOP<small>↑ / Space / tap game</small></button>
+    <button id="duckBtn">⬇ DUCK · PULL<small>↓ key (hold to duck)</small></button>
+  </div>
+  <div id="overlay"></div>
+  <div class="proto">PROTOTYPE</div>
+</div>
+<script src="sprites.js"></script>
+<script>
+// ================= tuning =================
+const STYLE = new URLSearchParams(location.search).get('style') || 'B';
+const W = 480, H = 270, COL = 24, GROUND = 196, MOWER_X = 130;
+const LAWN_TOP = 160, LAWN_BOTTOM = 216;
+const GRAVITY = 930, HOP_V = 300;            // ~0.65s airtime, ~48px peak
+const STALL_SEC = 1, SLACK_SEC = 1.5, BUDGET_HOURS = 6, REACH = 33;
+const CREWS = {
+  rideOn: { id:'rideOn', label:'Ride-on crew', speed:165, canDuck:false, height:44 },
+  push:   { id:'push',   label:'Push crew',    speed:128, canDuck:true,  height:43, duckHeight:34 },
+};
+// Level legend: . grass  _ worn dirt  = walkway  b bed  w bed + weed
+//               r rock  s sprinkler  c picnic table  h shrub  L old lady  D boy walking dog   (hop over)
+//               B low branch over grass (duck under)
+const PROPERTIES = [
+  { name:'North Valley Office Park', short:'North Valley', crew:'rideOn', backdrop:'office',
+    tip:'Wide open turf, no trees. BomData matched a <b>ride-on crew</b> to this site so you can move fast.',
+    level:'..........__s__........__r__......bwbb......__c__.........__s__....__D__........bbwb.....__s__..__r__.........__c__......bwbbwb.......__r__..........' },
+  { name:'Oak Creek HOA', short:'Oak Creek', crew:'push', backdrop:'hoa',
+    tip:'Low branches, weedy beds, and neighbors out for a walk. BomData matched a <b>push crew</b> that can duck under trees and get into the beds.',
+    level:'........_r_......BB.....bwbwb...._h_....BB.._L_.....bwbbw...BBB...._h_..bwb...._h_...BB..._r_....bbwbwb....BB.._h_........' },
+];
+const OBSTACLES = {
+  r: { w:15, h:12, kind:'hop' }, s: { w:9, h:9, kind:'hop' }, c: { w:28, h:17, kind:'hop' },
+  h: { w:21, h:18, kind:'hop' }, L: { w:15, h:27, kind:'hop' }, D: { w:30, h:26, kind:'hop' },
+  B: { w:33, kind:'duck', bottom: GROUND - 38, top: 96 },
+};
+const mowable = ch => ch === '.' || ch === 'B';
+
+// ================= run state =================
+function createRun(prop) {
+  const crew = CREWS[prop.crew];
+  const cols = [...prop.level];
+  const obstacles = [], weeds = [];
+  cols.forEach((ch, i) => {
+    const o = OBSTACLES[ch];
+    const prev = obstacles[obstacles.length - 1];
+    if (o && ch === 'B' && prev && prev.ch === 'B' && prev.col + prev.span === i) { prev.span++; prev.r += COL; }
+    else if (o) obstacles.push({ ch, col:i, span:1, x: i * COL + COL / 2, ...o, l: i * COL + COL / 2 - o.w / 2, r: i * COL + COL / 2 + o.w / 2, hit:false });
+    if (ch === 'w') weeds.push({ col:i, x: i * COL + COL / 2, pulled:false, missed:false });
+  });
+  const lengthPx = cols.length * COL;
+  const budgetSec = lengthPx / crew.speed + SLACK_SEC;
+  return { prop, crew, cols, obstacles, weeds, lengthPx, hoursPerSec: BUDGET_HOURS / budgetSec,
+    mowed: new Set(), mowableCount: cols.filter(mowable).length,
+    dist: 12, y: 0, vy: 0, ducking: false, duckHeld: false, stall: 0, shake: 0, elapsed: 0, hits: 0,
+    particles: [], floats: [], ended: false };
+}
+const hours = run => run.elapsed * run.hoursPerSec;
+const grounded = run => run.y === 0;
+function mowerBox(run) {
+  const h = run.ducking ? run.crew.duckHeight : run.crew.height;
+  return { l: run.dist - 10, r: run.dist + 10, top: GROUND - run.y - h, bottom: GROUND - run.y };
+}
+function hop(run) { if (!run.ended && grounded(run) && run.stall <= 0) { run.vy = HOP_V; run.ducking = false; } }
+function duckDown(run) {
+  if (run.ended) return;
+  run.duckHeld = true;
+  const w = run.weeds.find(w => !w.pulled && !w.missed && Math.abs(w.x - run.dist) <= REACH);
+  if (w) { w.pulled = true; run.floats.push({ x: w.x, y: GROUND - 30, text: '+50', t: 0.8, color:'#fff' }); burst(run, w.x, GROUND - 8, '#6d8f2a', 10); }
+}
+function duckUp(run) { run.duckHeld = false; }
+function burst(run, x, y, color, n) {
+  for (let i = 0; i < n; i++) run.particles.push({ x, y, vx: (Math.random() - 0.5) * 120, vy: -60 - Math.random() * 90, t: 0.5, color });
+}
+
+function tick(run, dt) {
+  if (run.ended) return;
+  run.elapsed += dt;
+  run.shake = Math.max(0, run.shake - dt);
+  if (!grounded(run) || run.vy > 0) {
+    run.y += run.vy * dt; run.vy -= GRAVITY * dt;
+    if (run.y <= 0) { run.y = 0; run.vy = 0; }
+  }
+  run.ducking = run.duckHeld && grounded(run) && run.crew.canDuck;
+  if (run.stall > 0) run.stall = Math.max(0, run.stall - dt);
+  else run.dist += run.crew.speed * dt;
+  const col = Math.floor(run.dist / COL);
+  const onGrass = grounded(run) && col < run.cols.length && mowable(run.cols[col]);
+  if (onGrass) run.mowed.add(col);
+  if (onGrass && run.stall <= 0 && Math.random() < 0.7) {
+    run.particles.push({ x: run.dist - 14, y: GROUND - 4, vx: -60 - Math.random() * 60, vy: -40 - Math.random() * 60, t: 0.35, color: Math.random() < 0.5 ? '#9be07a' : '#5da94e' });
+  }
+  const m = mowerBox(run);
+  for (const o of run.obstacles) {
+    if (o.hit) continue;
+    const { l, r } = o;
+    if (m.r <= l || m.l >= r) continue;
+    const top = o.kind === 'duck' ? o.top : GROUND - o.h;
+    const bottom = o.kind === 'duck' ? o.bottom : GROUND;
+    if (m.bottom > top && m.top < bottom) {
+      o.hit = true; run.hits++; run.stall = STALL_SEC; run.shake = 0.25;
+      run.floats.push({ x: run.dist, y: GROUND - 50, text: `+${(STALL_SEC * run.hoursPerSec).toFixed(1)}h`, t: 1, color:'#ff7a6b' });
+      if (o.ch === 'L') run.floats.push({ x: o.x, y: GROUND - 70, text: 'Sorry, ma’am!', t: 1.2, color:'#fff' });
+      burst(run, o.x, o.kind === 'duck' ? o.bottom : GROUND - o.h, o.kind === 'duck' ? '#3f8a3a' : '#9a9a9a', 12);
+    }
+  }
+  for (const w of run.weeds) if (!w.pulled && !w.missed && run.dist - w.x > REACH) {
+    w.missed = true; run.floats.push({ x: w.x, y: GROUND - 30, text: 'missed', t: 0.8, color:'#ffd0c8' });
+  }
+  for (const p of run.particles) { p.t -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 450 * dt; }
+  run.particles = run.particles.filter(p => p.t > 0);
+  for (const f of run.floats) { f.t -= dt; f.y -= 30 * dt; }
+  run.floats = run.floats.filter(f => f.t > 0);
+  if (run.dist >= run.lengthPx + 36) run.ended = true;
+}
+
+// ================= scoring =================
+function efficiencyStars(pct) { return pct > 95 ? 3 : pct > 80 ? 2 : pct > 70 ? 1 : 0; }
+function score(run) {
+  const used = hours(run), budget = BUDGET_HOURS;
+  const efficiency = Math.round(Math.min(1, budget / used) * 100);
+  const cut = Math.floor(run.mowed.size / run.mowableCount * 100);
+  const pulled = run.weeds.filter(w => w.pulled).length;
+  const effStars = efficiencyStars(efficiency);
+  const cutStar = cut === 100, weedStar = pulled === run.weeds.length;
+  const onBudget = used <= budget + 1e-9;
+  let points = run.mowed.size * 10 + pulled * 50;
+  if (onBudget) { if (cutStar) points += Math.floor((budget - used) * 10 + 1e-9) * 10; }
+  else points -= Math.floor((used - budget) * 10 + 1e-9) * 10;
+  return { used, budget, efficiency, effStars, cut, cutStar, pulled, weeds: run.weeds.length, weedStar, hits: run.hits,
+    stars: effStars + cutStar + weedStar, points, saved: onBudget && cutStar && weedStar ? budget - used : 0 };
+}
+const MAX_STARS = 5;
+const title = s => s >= 10 ? 'Margin Master' : s >= 8 ? 'Pro' : s >= 5 ? 'Crew Lead' : 'Rookie';
+const starStr = (n, t) => '★'.repeat(n) + '☆'.repeat(t - n);
+
+// ================= rendering =================
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+let current = null, currentProp = PROPERTIES[0];
+function fit() {
+  const dpr = window.devicePixelRatio || 1;
+  const f = Math.min((innerWidth - 22) / W, (innerHeight - 56 - 150) / H, 2.2);
+  canvas.style.width = W * f + 'px'; canvas.style.height = H * f + 'px';
+  canvas.width = Math.round(W * f * dpr); canvas.height = Math.round(H * f * dpr);
+  const s = canvas.width / W;
+  ctx.setTransform(s, 0, 0, s, 0, 0);
+  draw(current, currentProp);
+}
+addEventListener('resize', fit);
+
+Sprites.use(ctx);
+const { OL, px, box, poly, ellipse, shade } = Sprites;
+const hash = n => { let h = Math.imul(n + 7, 374761393) >>> 0; return Math.imul(h ^ (h >>> 13), 1274126177) >>> 0; };
+
+// ---- scenery ----
+function sky() {
+  const g = ctx.createLinearGradient(0, 0, 0, LAWN_TOP);
+  g.addColorStop(0, '#5fb4ea'); g.addColorStop(1, '#bfe6f7');
+  px(0, 0, W, LAWN_TOP, g);
+}
+function clouds(cam) {
+  for (let i = 0; i < 7; i++) {
+    const x = ((i * 131 - cam * 0.1) % 640 + 640) % 640 - 80, y = 16 + (i * 29) % 50;
+    ellipse(x, y, 22, 7, '#ffffff'); ellipse(x + 14, y - 5, 14, 8, '#ffffff'); ellipse(x - 12, y - 2, 10, 5, '#ffffff');
+  }
+}
+function house(x, base, variant) {
+  const bodies = ['#f2d7a6', '#bcd6ea', '#f3c0ae', '#d3e6b5', '#e8e2f2'];
+  const roofs = ['#9b3d31', '#4d5d7a', '#6b4a3a', '#3f6e4f', '#7a4f7f'];
+  const body = bodies[variant % 5], roof = roofs[variant % 5];
+  const w = 96, h = 46, depth = 18, top = base - h;
+  // back tree
+  px(x + 108, base - 58, 6, 58, '#6b4423'); ellipse(x + 111, base - 66, 22, 18, '#3c7f35', OL); ellipse(x + 104, base - 72, 10, 8, '#4f9a44');
+  // side face (3/4)
+  poly([[x + w, top], [x + w + depth, top - 10], [x + w + depth, base - 10], [x + w, base]], shade(body, -0.22));
+  // front face
+  box(x, top, w, h, body);
+  for (let i = 1; i < 6; i++) px(x, top + i * 8, w, 1, shade(body, -0.08));
+  // roof
+  poly([[x - 8, top + 1], [x + w / 2, top - 30], [x + w + 8, top + 1]], roof);
+  poly([[x + w / 2, top - 30], [x + w / 2 + depth, top - 40], [x + w + 8 + depth, top - 9], [x + w + 8, top + 1]], shade(roof, -0.25));
+  px(x - 8, top, w + 16, 2, shade(roof, -0.35));
+  // windows + door
+  const win = (wx, wy) => { box(wx, wy, 16, 13, '#a8d8f0'); px(wx + 7, wy, 2, 13, '#fff'); px(wx, wy + 6, 16, 1, '#fff'); px(wx - 2, wy - 1, 3, 15, shade(roof, 0.1)); px(wx + 15, wy - 1, 3, 15, shade(roof, 0.1)); };
+  win(x + 10, top + 12); win(x + 70, top + 12);
+  box(x + 40, top + 18, 16, 28, shade(roof, 0.15)); px(x + 52, top + 32, 2, 2, '#f5c542');
+  px(x + 34, base - 3, 28, 3, '#d9d4c7');
+  // picket fence along sidewalk
+  for (let fx = x - 20; fx < x + 130; fx += 7) { px(fx, base + 1, 4, 9, '#fbfbf5'); px(fx, base + 1, 4, 1, OL); }
+  px(x - 20, base + 4, 150, 2, '#e6e3d8');
+  // mailbox
+  px(x + 124, base - 4, 2, 14, '#5a4030'); box(x + 119, base - 10, 12, 7, '#2f5fa8'); px(x + 131, base - 12, 1, 5, '#e23b3b');
+}
+function officeBuilding(x, base, variant) {
+  const w = 120 + (variant % 3) * 16, h = 70 + (variant % 4) * 14, depth = 22, top = base - h;
+  poly([[x + w, top], [x + w + depth, top - 12], [x + w + depth, base - 12], [x + w, base]], '#5d6f86');
+  poly([[x, top], [x + depth, top - 12], [x + w + depth, top - 12], [x + w, top]], '#9fb0c4');
+  box(x, top, w, h, '#7f95ad');
+  for (let wy = top + 6; wy < base - 18; wy += 12) {
+    const g = ctx.createLinearGradient(0, wy, 0, wy + 8);
+    g.addColorStop(0, '#d6ecfa'); g.addColorStop(1, '#6fa8d0');
+    px(x + 4, wy, w - 8, 8, g);
+    for (let wx = x + 4; wx < x + w - 4; wx += 18) px(wx, wy, 1, 8, '#51677f');
+  }
+  box(x + w / 2 - 14, base - 16, 28, 16, '#a8d8f0'); px(x + w / 2, base - 16, 1, 16, '#51677f');
+  if (variant % 2 === 0) { box(x + 8, top - 10, 44, 9, '#127DB9'); ctx.fillStyle = '#fff'; ctx.font = '6px "Press Start 2P"'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('N.VALLEY', x + 10, top - 5); }
+  // hedge along sidewalk
+  for (let hx = x - 10; hx < x + w + 20; hx += 14) ellipse(hx + 7, base + 3, 8, 6, '#3f8a3a', OL);
+}
+function backdrop(kind, cam) {
+  const base = LAWN_TOP - 10, span = kind === 'office' ? 190 : 170, par = 0.85;
+  const start = Math.floor((cam * par - 200) / span);
+  for (let i = start; i < start + 5; i++) {
+    const x = i * span - cam * par;
+    if (kind === 'office') officeBuilding(x, base, Math.abs(i)); else house(x, base, Math.abs(i));
+  }
+}
+function sidewalkAndStreet(cam) {
+  px(0, LAWN_TOP - 10, W, 10, '#d7d3c9'); px(0, LAWN_TOP - 10, W, 1, '#f1eee6'); px(0, LAWN_TOP - 1, W, 1, '#b5b0a4');
+  for (let x = -((cam % 40) + 40) % 40; x < W; x += 40) px(x, LAWN_TOP - 10, 1, 10, '#b5b0a4');
+  px(0, LAWN_BOTTOM, W, 7, '#c9c5bb'); px(0, LAWN_BOTTOM, W, 2, '#ecebe4'); px(0, LAWN_BOTTOM + 7, W, 1, OL);
+  px(0, LAWN_BOTTOM + 8, W, H - LAWN_BOTTOM - 8, '#4a4b55');
+  for (let x = -((cam % 60) + 60) % 60; x < W; x += 60) px(x, 248, 30, 3, '#f1c232');
+  // parked cars
+  for (let i = Math.floor((cam - 300) / 420); i < Math.floor((cam + W) / 420) + 1; i++) {
+    const x = i * 420 + 260 - cam, c = ['#d64533', '#2f5fa8', '#f5c542', '#3f8a3a'][((i % 4) + 4) % 4];
+    ellipse(x + 30, 262, 32, 4, 'rgba(0,0,0,.3)');
+    poly([[x, 258], [x + 4, 246], [x + 14, 246], [x + 20, 236], [x + 44, 236], [x + 52, 246], [x + 60, 247], [x + 60, 258]], c);
+    poly([[x + 22, 238], [x + 30, 238], [x + 30, 245], [x + 17, 245]], '#bfe3f5', null);
+    poly([[x + 33, 238], [x + 43, 238], [x + 49, 245], [x + 33, 245]], '#bfe3f5', null);
+    ellipse(x + 14, 258, 6, 6, '#222', OL); ellipse(x + 48, 258, 6, 6, '#222', OL);
+    ellipse(x + 14, 258, 2, 2, '#aaa'); ellipse(x + 48, 258, 2, 2, '#aaa');
+  }
+}
+function lawn(run, prop, cam) {
+  const cols = run ? run.cols : [...prop.level];
+  const first = Math.floor(cam / COL) - 1, last = Math.floor((cam + W) / COL) + 1;
+  const bandH = LAWN_BOTTOM - LAWN_TOP;
+  for (let c = first; c <= last; c++) {
+    const x = c * COL - cam;
+    const ch = c < 0 || c >= cols.length ? '=' : cols[c];
+    const h = hash(c);
+    const isPad = ch === '_' || (OBSTACLES[ch] && OBSTACLES[ch].kind === 'hop');
+    if (isPad) {
+      px(x, LAWN_TOP, COL, bandH, '#b08a5a');
+    } else if (mowable(ch) || ch === 'b' || ch === 'w') {
+      const mowed = run && run.mowed.has(c);
+      if (mowable(ch) && mowed) {
+        px(x, LAWN_TOP, COL, bandH, c % 2 ? '#7cc85a' : '#93d872');
+        px(x, LAWN_TOP, 1, bandH, 'rgba(0,0,0,.05)');
+      } else {
+        px(x, LAWN_TOP, COL, bandH, '#4b9a37');
+        for (let k = 0; k < 10; k++) {
+          const tx = x + ((h >>> (k * 3)) % COL), ty = LAWN_TOP + 4 + ((h >>> (k * 2 + 5)) % (bandH - 6));
+          px(tx, ty - 4, 1, 4, '#357a27'); px(tx + 2, ty - 3, 1, 3, '#5fb046'); px(tx - 2, ty - 2, 1, 2, '#357a27');
+        }
+      }
+    } else {
+      px(x, LAWN_TOP, COL, bandH, '#4b9a37');
+    }
+    if (ch === '=') {
+      poly([[x + 2, LAWN_TOP], [x + 22, LAWN_TOP], [x + 24, LAWN_BOTTOM], [x, LAWN_BOTTOM]], '#dcd8ce', null);
+      px(x, LAWN_TOP + 26, COL, 1, '#bdb8ad');
+    }
+  }
+  // beds and worn patches drawn as rounded shapes spanning their run of columns
+  let c = first;
+  while (c <= last) {
+    const ch = c >= 0 && c < cols.length ? cols[c] : '=';
+    const bed = ch === 'b' || ch === 'w';
+    const pad = ch === '_' || (OBSTACLES[ch] && OBSTACLES[ch].kind === 'hop');
+    if (!bed && !pad) { c++; continue; }
+    let e = c;
+    while (e + 1 < cols.length && (bed ? 'bw'.includes(cols[e + 1]) : (cols[e + 1] === '_' || (OBSTACLES[cols[e + 1]] && OBSTACLES[cols[e + 1]].kind === 'hop')))) e++;
+    const x0 = c * COL - cam, x1 = (e + 1) * COL - cam;
+    if (bed) {
+      ctx.beginPath(); ctx.roundRect(x0 + 1, LAWN_TOP + 8, x1 - x0 - 2, bandH - 12, 10);
+      ctx.fillStyle = '#7a4b2a'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#c8c0b0'; ctx.stroke();
+      for (let k = 0; k < (e - c + 1) * 8; k++) { const hh = hash(c * 31 + k); px(x0 + 4 + hh % Math.max(1, x1 - x0 - 8), LAWN_TOP + 12 + (hh >>> 8) % (bandH - 20), 2, 1, '#5c3620'); }
+      for (let k = c; k <= e; k++) if (cols[k] === 'b' && (hash(k) & 1)) { const bx = k * COL - cam + 12; ellipse(bx, LAWN_TOP + 20, 8, 6, '#3f8a3a', OL); ellipse(bx - 2, LAWN_TOP + 18, 3, 2, '#5fb046'); }
+    } else {
+      px(x0, LAWN_TOP, x1 - x0, bandH, '#b08a5a');
+      px(x0, LAWN_TOP, 2, bandH, '#8f6a3e'); px(x1 - 2, LAWN_TOP, 2, bandH, '#8f6a3e');
+      ctx.beginPath(); ctx.roundRect(x0 + 6, LAWN_TOP + 6, x1 - x0 - 12, bandH - 12, 8);
+      ctx.fillStyle = '#c29c6a'; ctx.fill();
+      for (let k = 0; k < (e - c + 1) * 6; k++) { const hh = hash(c * 17 + k); px(x0 + 4 + hh % Math.max(1, x1 - x0 - 8), LAWN_TOP + 4 + (hh >>> 8) % (bandH - 8), 2, 2, '#9a7648'); }
+    }
+    c = e + 1;
+  }
+}
+
+function bubble(x, y, text) {
+  ctx.font = '8px "Press Start 2P"';
+  const w = Math.ceil(ctx.measureText(text).width) + 12;
+  const bob = Math.round(Math.sin(performance.now() / 150) * 2);
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y - 16 + bob, w, 15, 4); ctx.fillStyle = '#fffdf5'; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = OL; ctx.stroke();
+  poly([[x - 4, y - 1 + bob], [x + 4, y - 1 + bob], [x, y + 4 + bob]], '#fffdf5');
+  ctx.fillStyle = OL; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y - 8 + bob);
+}
+
+const hintsDone = new Set();
+function draw(run, prop) {
+  if (!ctx) return;
+  const cam = run ? run.dist - MOWER_X : 0;
+  const shake = run && run.shake > 0 ? (Math.random() - 0.5) * 5 : 0;
+  ctx.save(); ctx.translate(shake, 0);
+  sky(); clouds(cam); backdrop(prop.backdrop, cam);
+  sidewalkAndStreet(cam);
+  lawn(run, prop, cam);
+  const obstacles = run ? run.obstacles : [];
+  const visible = (x, m = 60) => x > -m && x < W + m;
+  const branchStarts = obstacles.filter(o => o.kind === 'duck');
+  const branchSpan = o => o.span;
+  for (const o of branchStarts) if (visible(o.x - cam, 120)) Sprites.branchTrunk(STYLE, o.x - cam, branchSpan(o));
+  for (const w of run ? run.weeds : []) if (!w.pulled && visible(w.x - cam)) Sprites.weed(STYLE, w.x - cam, GROUND, { missed: w.missed });
+  for (const o of obstacles) if (o.kind !== 'duck' && visible(o.x - cam)) Sprites.obstacle(STYLE, o.ch, o.x - cam, GROUND, { hit: o.hit });
+  // finish flag
+  if (run) {
+    const fx = run.lengthPx - cam;
+    if (visible(fx)) { px(fx, GROUND - 46, 2, 46, OL); for (let i = 0; i < 5; i++) for (let j = 0; j < 4; j++) px(fx + 2 + i * 4, GROUND - 46 + j * 4, 4, 4, (i + j) % 2 ? '#fff' : OL); }
+  }
+  Sprites.crew(STYLE, (run ? run.prop : prop).crew, MOWER_X, GROUND, { air: run ? run.y : 0, duck: !!(run && run.ducking) });
+  for (const o of branchStarts) if (visible(o.x - cam, 120)) Sprites.branch(STYLE, o.x - cam, o.bottom, branchSpan(o));
+  if (run) {
+    for (const p of run.particles) px(p.x - cam, p.y, 2, 2, p.color);
+    const hint = (key, x, y, text) => {
+      if (hintsDone.has(run.prop.name + key)) return;
+      const sx = x - cam; if (sx > MOWER_X - 10 && sx < W - 20) bubble(sx, y, text);
+    };
+    const firstHop = run.obstacles.find(o => o.kind === 'hop');
+    const firstDuck = run.obstacles.find(o => o.kind === 'duck');
+    const firstWeed = run.weeds[0];
+    if (firstHop) hint('hop', firstHop.x, GROUND - 22, '⬆ HOP');
+    if (firstDuck) hint('duck', firstDuck.x, 88, '⬇ DUCK');
+    if (firstWeed && !firstWeed.pulled) hint('weed', firstWeed.x, GROUND - 44, '⬇ PULL');
+    ctx.font = '9px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (const f of run.floats) {
+      const sx = f.x - cam;
+      ctx.fillStyle = OL; ctx.fillText(f.text, sx + 1, f.y + 1);
+      ctx.fillStyle = f.color; ctx.fillText(f.text, sx, f.y);
+    }
+    px(10, 8, W - 20, 5, 'rgba(0,0,0,.35)'); px(10, 8, Math.min(1, run.dist / run.lengthPx) * (W - 20), 5, '#f5c542');
+  }
+  ctx.restore();
+}
+
+// ================= input =================
+let active = null;
+const controls = document.getElementById('controls');
+const hopBtn = document.getElementById('hopBtn'), duckBtn = document.getElementById('duckBtn');
+const press = (btn, on) => btn.classList.toggle('active', on);
+const HOP_KEYS = ['ArrowUp', ' ', 'w', 'W'], DUCK_KEYS = ['ArrowDown', 's', 'S'];
+addEventListener('keydown', e => {
+  if (!active) return;
+  if (HOP_KEYS.includes(e.key)) { e.preventDefault(); if (!e.repeat) { hop(active); press(hopBtn, true); } }
+  if (DUCK_KEYS.includes(e.key)) { e.preventDefault(); if (!e.repeat) { duckDown(active); press(duckBtn, true); } }
+});
+addEventListener('keyup', e => {
+  if (HOP_KEYS.includes(e.key)) press(hopBtn, false);
+  if (DUCK_KEYS.includes(e.key)) { if (active) duckUp(active); press(duckBtn, false); }
+});
+hopBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (active) hop(active); press(hopBtn, true); });
+['pointerup', 'pointerleave', 'pointercancel'].forEach(t => hopBtn.addEventListener(t, () => press(hopBtn, false)));
+duckBtn.addEventListener('pointerdown', e => { e.preventDefault(); duckBtn.setPointerCapture(e.pointerId); if (active) duckDown(active); press(duckBtn, true); });
+['pointerup', 'pointercancel'].forEach(t => duckBtn.addEventListener(t, () => { if (active) duckUp(active); press(duckBtn, false); }));
+canvas.addEventListener('pointerdown', e => { e.preventDefault(); if (active) hop(active); });
+addEventListener('contextmenu', e => { if (active) e.preventDefault(); });
+
+// ================= flow =================
+const overlay = document.getElementById('overlay'), hud = document.getElementById('hud');
+function panel(html) { overlay.innerHTML = `<div class="panel">${html}</div>`; const p = overlay.firstElementChild; p.querySelector('.btn')?.focus(); return p; }
+const waitClick = root => new Promise(res => root.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { overlay.innerHTML = ''; res(); })));
+const controlsHtml = crew => `<div class="keys">
+  <div><b>⬆ Hop</b> over ${crew.canDuck ? 'rocks, shrubs and neighbors' : 'sprinklers, picnic tables and dog walkers'}: ↑, Space, or tap the game</div>
+  ${crew.canDuck ? '<div><b>⬇ Duck</b> under low branches: hold ↓</div>' : ''}
+  <div><b>⬇ Pull</b> weeds as you pass over them: press ↓</div>
+  <div style="margin-top:8px;font-size:13px;opacity:.8">Only hop when you need to: grass you fly over doesn’t get cut.</div></div>`;
+
+function play(run) {
+  return new Promise(resolve => {
+    active = run; current = run;
+    let last = performance.now();
+    const clock = document.getElementById('clock'), cov = document.getElementById('cov');
+    const frame = now => {
+      const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+      tick(run, dt); draw(run, run.prop);
+      clock.textContent = `${hours(run).toFixed(1)}/${BUDGET_HOURS.toFixed(1)}h`;
+      clock.classList.toggle('over', hours(run) > BUDGET_HOURS + 1e-9);
+      cov.textContent = `${Math.floor(run.mowed.size / run.mowableCount * 100)}% cut`;
+      const groups = { hop: run.obstacles.filter(o => o.kind === 'hop'), duck: run.obstacles.filter(o => o.kind === 'duck'), weed: run.weeds };
+      for (const [k, list] of Object.entries(groups)) if (list[0] && run.dist > list[0].x + 10) hintsDone.add(run.prop.name + k);
+      if (run.ended) { active = null; resolve(); return; }
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  });
+}
+
+async function round() {
+  const results = [];
+  for (const [n, prop] of PROPERTIES.entries()) {
+    const crew = CREWS[prop.crew];
+    currentProp = prop; current = createRun(prop); draw(current, prop);
+    await waitClick(panel(`
+      <h2>Property ${n + 1} of ${PROPERTIES.length}</h2><h1>${prop.name}</h1>
+      <div class="tip"><b class="label">BomData heads-up</b>${prop.tip}</div>
+      ${controlsHtml(crew)}
+      <p>Budget: ${BUDGET_HOURS.toFixed(1)} hrs</p>
+      <button class="btn primary">Go!</button>`));
+    const run = createRun(prop);
+    document.getElementById('hudName').textContent = `${prop.short} · ${crew.label}`;
+    hud.style.display = 'flex'; controls.style.display = 'flex';
+    await play(run);
+    hud.style.display = 'none'; controls.style.display = 'none';
+    const s = score(run); results.push(s);
+    const star = b => b ? '★' : '☆';
+    await waitClick(panel(`
+      <h1>${prop.name}</h1><div class="stars">${starStr(s.stars, MAX_STARS)}</div>
+      <div class="section">EFFICIENCY</div>
+      <div class="row"><span>${s.efficiency}% <small>(${s.used.toFixed(1)} of ${s.budget.toFixed(1)} hrs)</small></span><span class="s">${starStr(s.effStars, 3)}</span></div>
+      <div class="section">QUALITY</div>
+      <div class="row"><span>Grass cut: ${s.cut}%</span><span class="s">${star(s.cutStar)}</span></div>
+      <div class="row"><span>Weeds pulled: ${s.pulled}/${s.weeds}</span><span class="s">${star(s.weedStar)}</span></div>
+      <p class="proof" style="margin-top:10px">${s.hits ? `${s.hits} bump${s.hits > 1 ? 's' : ''} cost you ${(s.hits * STALL_SEC * run.hoursPerSec).toFixed(1)} hrs.` : 'No bumps. Smooth driving.'} ${s.cut < 100 ? 'Hopping over grass left it uncut.' : ''}</p>
+      <p><b>${s.points.toLocaleString('en-US')} pts</b></p>
+      <button class="btn primary">${n === PROPERTIES.length - 1 ? 'See my scorecard' : 'Next property'}</button>`));
+  }
+  const stars = results.reduce((a, r) => a + r.stars, 0), max = results.length * MAX_STARS;
+  const points = results.reduce((a, r) => a + r.points, 0);
+  const saved = Math.round(results.reduce((a, r) => a + r.saved, 0) * 10) / 10;
+  const eff = Math.round(Math.min(1, results.reduce((a, r) => a + r.budget, 0) / results.reduce((a, r) => a + r.used, 0)) * 100);
+  await waitClick(panel(`
+    <h2>Weekly scorecard</h2><h1>${title(stars)}</h1>
+    <div class="stars">${starStr(stars, max)}</div>
+    <p><b>⭐ ${stars}/${max} · ${eff}% efficiency · ${points.toLocaleString('en-US')} pts · ${saved.toFixed(1)} hrs saved</b></p>
+    <p class="proof">Real crews using BomData improved labor efficiency 8–10%.</p>
+    <a class="btn primary" href="https://bomdata.io/contact/" target="_blank" rel="noopener">Book a demo</a>
+    <button class="btn secondary">Play again</button>`));
+}
+
+(async () => {
+  await document.fonts.ready;
+  fit();
+  // Screenshot helper: ?peek=0&at=900 shows property 0 at that distance with no menus.
+  const q = new URLSearchParams(location.search);
+  if (q.has('peek')) {
+    const prop = PROPERTIES[Number(q.get('peek'))];
+    currentProp = prop; current = createRun(prop); current.dist = Number(q.get('at') || 12);
+    for (let c = 0; c < Math.floor(current.dist / COL); c++) if (mowable(current.cols[c])) current.mowed.add(c);
+    if (q.has('duck')) current.ducking = true;
+    draw(current, prop);
+    return;
+  }
+  await waitClick(panel(`
+    <h1>Margin Mower</h1><p><b>Can you mow on budget?</b></p>
+    <p>Two properties. Hop the obstacles, duck the branches, pull the weeds, and cross the finish line before your 6 hours run out.</p>
+    <button class="btn primary">Start shift</button><p class="proof" style="margin-top:12px">A game by BomData</p>`));
+  for (;;) await round();
+})();
+</script>
+</body>
+</html>

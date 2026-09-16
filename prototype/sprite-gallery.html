@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Margin Mower Sprites</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<style>
+  body { margin:0; padding:24px; background:#f3efe0; color:#1d2b36; font-family:'DM Sans',Arial,sans-serif; }
+  h1 { font:18px/1.5 'Press Start 2P',monospace; margin:0 0 6px; }
+  h2 { font:12px/1.5 'Press Start 2P',monospace; margin:32px 0 4px; color:#127db9; }
+  p { margin:0 0 12px; max-width:760px; }
+  .style-row { display:flex; gap:16px; align-items:flex-start; margin:14px 0; flex-wrap:wrap; }
+  .style-label { width:120px; flex:none; font-weight:700; padding-top:8px; }
+  .style-label small { display:block; font-weight:400; color:#4d5b66; }
+  .grid { display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start; }
+  figure { margin:0; background:#fff; border:3px solid #1d2b36; box-shadow:3px 3px 0 #1d2b36; }
+  figure canvas { display:block; }
+  figcaption { font-size:13px; padding:6px 8px; border-top:2px solid #1d2b36; }
+  figcaption b { font-family:'Press Start 2P',monospace; font-size:9px; margin-right:6px; }
+  .links a { font-weight:700; color:#127db9; margin-right:16px; }
+</style>
+</head>
+<body>
+<h1>Margin Mower sprites</h1>
+<p>Each sprite has a code (like <b>B2</b>) so you can say what to change. The letter is the art style and the number is the sprite. Sprites animate the way they do in the game.</p>
+<p class="links">Play the game in a style: <a href="margin-mower-runner.html?style=A">Style A</a><a href="margin-mower-runner.html?style=B">Style B</a><a href="margin-mower-runner.html?style=C">Style C</a></p>
+
+<h2>Crews</h2>
+<div id="crews"></div>
+
+<h2>Obstacles and weeds</h2>
+<p>Style C has no obstacle art yet. If you pick C, I'll draw obstacles to match.</p>
+<div id="obstacles"></div>
+
+<script src="sprites.js"></script>
+<script>
+const ZOOM = 3;
+const STYLES = { A: 'Current', B: 'Bold cartoon', C: 'Flat modern' };
+const cells = [];
+
+function cell(parent, code, caption, w, h, base, drawFn) {
+  const fig = document.createElement('figure');
+  const canvas = document.createElement('canvas');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = w * ZOOM * dpr; canvas.height = h * ZOOM * dpr;
+  canvas.style.width = w * ZOOM + 'px'; canvas.style.height = h * ZOOM + 'px';
+  const cap = document.createElement('figcaption');
+  cap.innerHTML = `<b>${code}</b>${caption}`;
+  fig.append(canvas, cap);
+  parent.append(fig);
+  cells.push({ canvas, w, h, base, drawFn, scale: ZOOM * dpr });
+}
+
+function background(ctx, w, h, base) {
+  const g = ctx.createLinearGradient(0, 0, 0, base - 16);
+  g.addColorStop(0, '#8fcdf0'); g.addColorStop(1, '#d4eef9');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#4b9a37'; ctx.fillRect(0, base - 16, w, h - base + 16);
+  ctx.fillStyle = '#93d872'; ctx.fillRect(0, base - 8, w, 14);
+}
+
+function row(container, style, items) {
+  const r = document.createElement('div'); r.className = 'style-row';
+  r.innerHTML = `<div class="style-label">Style ${style}<small>${STYLES[style]}</small></div>`;
+  const grid = document.createElement('div'); grid.className = 'grid';
+  r.append(grid); container.append(r);
+  items.forEach((it, i) => cell(grid, `${style}${i + 1}`, it.caption, it.w || 70, it.h || 72, it.base || 62, it.draw));
+}
+
+const crewItems = style => [
+  { caption: 'Ride-on, driving', draw: (x, b) => Sprites.crew(style, 'rideOn', x, b, {}) },
+  { caption: 'Ride-on, hopping', draw: (x, b) => Sprites.crew(style, 'rideOn', x, b, { air: 10 }) },
+  { caption: 'Push crew, walking', draw: (x, b) => Sprites.crew(style, 'push', x, b, {}) },
+  { caption: 'Push crew, ducking', draw: (x, b) => Sprites.crew(style, 'push', x, b, { duck: true }) },
+  { caption: 'Push crew, hopping', draw: (x, b) => Sprites.crew(style, 'push', x, b, { air: 10 }) },
+];
+const crewsEl = document.getElementById('crews');
+if (!location.search.includes('only=obstacles')) for (const s of ['A', 'B', 'C']) row(crewsEl, s, crewItems(s));
+
+const obstacleItems = style => [
+  { caption: 'Rock', draw: (x, b) => Sprites.obstacle(style, 'r', x, b) },
+  { caption: 'Sprinkler', draw: (x, b) => Sprites.obstacle(style, 's', x, b) },
+  { caption: 'Curb (A) / picnic table (B)', draw: (x, b) => Sprites.obstacle(style, 'c', x, b) },
+  { caption: 'Shrub', draw: (x, b) => Sprites.obstacle(style, 'h', x, b) },
+  { caption: 'Neighbor with cane', draw: (x, b) => Sprites.obstacle(style, 'L', x, b) },
+  { caption: 'Boy walking dog', draw: (x, b) => Sprites.obstacle(style, 'D', x, b) },
+  { caption: 'Weed', draw: (x, b) => Sprites.weed(style, x, b) },
+  { caption: 'Missed weed', draw: (x, b) => Sprites.weed(style, x, b, { missed: true }) },
+  { caption: 'Low branch (push crew ducking)', w: 130, h: 150, base: 138, draw: (x, b, ctx) => {
+      ctx.save(); ctx.translate(0, b - 196);          // branch art uses game coordinates (ground = 196)
+      Sprites.branchTrunk(style, x - 12, 2);
+      Sprites.crew(style, 'push', x - 4, 196, { duck: true });
+      Sprites.branch(style, x - 12, 196 - 38, 2);
+      ctx.restore();
+    } },
+];
+const obstaclesEl = document.getElementById('obstacles');
+for (const s of (location.search.includes('only=obstacles') ? ['B'] : ['A', 'B'])) row(obstaclesEl, s, obstacleItems(s));
+
+function render() {
+  for (const cl of cells) {
+    const ctx = cl.canvas.getContext('2d');
+    ctx.setTransform(cl.scale, 0, 0, cl.scale, 0, 0);
+    Sprites.use(ctx);
+    background(ctx, cl.w, cl.h, cl.base);
+    cl.drawFn(cl.w / 2, cl.base, ctx);
+  }
+  requestAnimationFrame(render);
+}
+document.fonts.ready.then(render);
+</script>
+</body>
+</html>
