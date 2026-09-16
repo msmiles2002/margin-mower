@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BUDGET_HOURS, END_PADDING, HOP_VELOCITY, START_DIST, STALL_SECONDS } from './constants';
+import { BUDGET_HOURS, DUCK_SECONDS, END_PADDING, HOP_VELOCITY, START_DIST, STALL_SECONDS } from './constants';
 import type { CrewId } from './crews';
 import type { Property } from './levels';
 import { createRun, cutPercent, hop, hoursUsed, isGrounded, pressDuck, releaseDuck, resultOf, tickRun, type Run } from './run';
@@ -146,12 +146,45 @@ describe('bumps', () => {
     expect(run.hits).toBe(1);
   });
 
-  it('stops ducking on release', () => {
+  it('keeps ducking briefly after a quick press, so a tap or flick clears a branch', () => {
     const run = createRun(testProperty('..........'));
     pressDuck(run, noEffects);
+    releaseDuck(run);
     tickRun(run, step, noEffects);
     expect(run.ducking).toBe(true);
+    advanceUntil(run, (r) => r.elapsed >= DUCK_SECONDS - 0.05);
+    expect(run.ducking).toBe(true);
+    advanceUntil(run, (r) => r.elapsed >= DUCK_SECONDS + 0.05);
+    expect(run.ducking).toBe(false);
+  });
+
+  it('keeps ducking while held past the quick-duck time', () => {
+    const run = createRun(testProperty('.'.repeat(40)));
+    pressDuck(run, noEffects);
+    advanceUntil(run, (r) => r.elapsed >= DUCK_SECONDS + 0.5);
+    expect(run.ducking).toBe(true);
     releaseDuck(run);
+    tickRun(run, step, noEffects);
+    expect(run.ducking).toBe(false);
+  });
+
+  it('clears the longest branch group with a single quick press just before it', () => {
+    const run = createRun(testProperty('.....BBB.....'));
+    const branch = run.level.obstacles[0];
+    advanceUntil(run, (r) => branch.left - (r.dist + 10) < 20);
+    pressDuck(run, noEffects);
+    releaseDuck(run);
+    advanceUntil(run, (r) => r.ended);
+    expect(run.hits).toBe(0);
+  });
+
+  it('cancels a quick duck when hopping', () => {
+    const run = createRun(testProperty('.'.repeat(40)));
+    pressDuck(run, noEffects);
+    releaseDuck(run);
+    tickRun(run, step, noEffects);
+    expect(hop(run)).toBe(true);
+    advanceUntil(run, isGrounded);
     tickRun(run, step, noEffects);
     expect(run.ducking).toBe(false);
   });

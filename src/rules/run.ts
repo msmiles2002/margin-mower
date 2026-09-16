@@ -1,6 +1,7 @@
 import {
   BUDGET_HOURS,
   COL,
+  DUCK_SECONDS,
   CREW_HALF_WIDTH,
   END_PADDING,
   GRAVITY,
@@ -46,6 +47,7 @@ export interface Run {
   vy: number;
   ducking: boolean;
   duckHeld: boolean;
+  duckTimer: number;
   stall: number;
   shake: number;
   elapsed: number;
@@ -71,6 +73,7 @@ export function createRun(property: Property): Run {
     vy: 0,
     ducking: false,
     duckHeld: false,
+    duckTimer: 0,
     stall: 0,
     shake: 0,
     elapsed: 0,
@@ -96,13 +99,15 @@ export function hop(run: Run): boolean {
   if (run.ended || !isGrounded(run) || run.stall > 0) return false;
   run.vy = HOP_VELOCITY;
   run.ducking = false;
+  run.duckTimer = 0;
   return true;
 }
 
-// Pressing duck also pulls the nearest weed in reach. Returns true when a weed was pulled.
+// Pressing duck starts a timed duck (kept going while held) and pulls the nearest weed in reach. Returns true when a weed was pulled.
 export function pressDuck(run: Run, rng: Rng): boolean {
   if (run.ended) return false;
   run.duckHeld = true;
+  run.duckTimer = DUCK_SECONDS;
   const weed = run.level.weeds.find((w) => !w.pulled && !w.missed && Math.abs(w.x - run.dist) <= WEED_REACH);
   if (weed === undefined) return false;
   weed.pulled = true;
@@ -150,7 +155,8 @@ export function tickRun(run: Run, dt: number, rng: Rng): void {
       run.vy = 0;
     }
   }
-  run.ducking = run.duckHeld && isGrounded(run) && run.crew.canDuck;
+  run.duckTimer = Math.max(0, run.duckTimer - dt);
+  run.ducking = (run.duckHeld || run.duckTimer > 0) && isGrounded(run) && run.crew.canDuck;
 
   if (run.stall > 0) run.stall = Math.max(0, run.stall - dt);
   else run.dist += run.crew.speed * dt;

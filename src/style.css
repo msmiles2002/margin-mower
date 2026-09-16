@@ -34,7 +34,10 @@ body {
   align-items: center;
 }
 
+body.playing { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
 #board {
+  -webkit-touch-callout: none;
   margin-top: 8px;
   border: 3px solid #111;
   touch-action: none;
@@ -76,6 +79,7 @@ body {
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 #controls button.active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #111; }
 #controls small { display: block; margin-top: 4px; font: 11px var(--body); opacity: 0.7; }

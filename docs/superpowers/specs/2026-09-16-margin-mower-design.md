@@ -27,12 +27,18 @@ It's a side-scrolling runner. The crew drives right automatically, and the camer
 
 ### Controls
 
-| Action | Keyboard | Touch |
-|---|---|---|
-| **Hop** | ↑, Space, W | Tap the game, or the **⬆ HOP** button |
-| **Duck** (hold) | ↓, S | Hold the **⬇ DUCK · PULL** button |
-| **Pull weed** | Press ↓ or S while passing a weed | Press **⬇ DUCK · PULL** while passing a weed |
+| Action | Keyboard | Touch | Mouse |
+|---|---|---|---|
+| **Hop** | ↑, Space, W | Tap or flick up anywhere on the game, or tap **⬆ HOP** | Click the game or **⬆ HOP** |
+| **Duck** | ↓, S | Flick down anywhere on the game, or tap **⬇ DUCK · PULL** | **⬇ DUCK · PULL** |
+| **Pull weed** | ↓ or S while passing a weed | The same flick or tap, while passing a weed | The same button |
 
+- **Duck timing:** every duck press lasts 1.2 s (`DUCK_SECONDS`), which is enough to clear the longest branch. Holding the key, button or finger keeps the crew ducked longer. Hopping cancels a timed duck.
+- **Touch gestures:**
+  - A mostly vertical swipe of at least 18 CSS px is a flick.
+  - A touch that moves less than that and ends within 250 ms is a tap.
+  - Gestures work anywhere on the page except on the two control buttons.
+  - While playing, `body.playing` sets `touch-action: none` and turns off the iOS long-press callout, so flicks never scroll the page, including the WordPress page around the embed.
 - Hop only works on the ground and not while stalled.
 - Duck only works for the push crew.
 - Pulling works for both crews. It pulls the nearest unpulled weed within reach and never stalls the crew.

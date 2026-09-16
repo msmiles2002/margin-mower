@@ -21,9 +21,9 @@ export function showTitle(overlay: HTMLElement): Promise<void> {
 function controlsHelp(crew: Crew): HTMLDivElement {
   const line = (label: string, rest: string) => el('div', {}, [el('b', { text: label }), rest]);
   return el('div', { className: 'keys' }, [
-    line('⬆ Hop', ` over ${crew.canDuck ? 'rocks, shrubs and neighbors' : 'sprinklers, picnic tables and dog walkers'}: ↑, Space, or tap the game`),
-    ...(crew.canDuck ? [line('⬇ Duck', ' under low branches: hold ↓')] : []),
-    line('⬇ Pull', ' weeds as you pass over them: press ↓'),
+    line('⬆ Hop', ` over ${crew.canDuck ? 'rocks, shrubs and neighbors' : 'sprinklers, picnic tables and dog walkers'}: tap or flick up (↑ or Space)`),
+    ...(crew.canDuck ? [line('⬇ Duck', ' under low branches: flick down (↓)')] : []),
+    line('⬇ Pull', ' weeds as you pass over them: flick down (↓)'),
     el('div', { className: 'keys-note', text: 'Only hop when you need to: grass you fly over doesn’t get cut.' }),
   ]);
 }

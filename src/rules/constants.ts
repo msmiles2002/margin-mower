@@ -12,6 +12,8 @@ export const HOP_VELOCITY = 300;
 export const CREW_HALF_WIDTH = 10;
 export const WEED_REACH = 33;
 export const STALL_SECONDS = 1;
+// A duck press (tap, flick or key) keeps the crew low this long, enough to clear the longest branch.
+export const DUCK_SECONDS = 1.2;
 export const SLACK_SECONDS = 1.5;
 export const BUDGET_HOURS = 6;
 export const START_DIST = 12;
