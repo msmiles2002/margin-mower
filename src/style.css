@@ -152,8 +152,10 @@ body.using-keyboard #controls button:focus-visible { outline: 3px solid var(--co
 .row .value { white-space: nowrap; font-weight: 700; }
 .row .check { font-size: 18px; font-weight: 700; color: var(--green-text); }
 .row .cross { font-size: 18px; font-weight: 700; color: #c0503f; }
+.outcome { margin: 0 0 6px; font-size: 15px; font-weight: 700; }
 .celebrate {
   display: inline-block;
+  text-transform: uppercase;
   margin: 0 0 6px;
   padding: 6px 10px;
   font: 10px/1.5 var(--pixel);
@@ -175,6 +177,18 @@ body.using-keyboard #controls button:focus-visible { outline: 3px solid var(--co
 .variance.bad, .headline.bad { color: #c0503f; }
 .bonus { padding-top: 4px; text-align: left; font-size: 13px; font-weight: 700; color: var(--green-text); }
 .sub-note { padding: 2px 0 4px; text-align: left; font-size: 13px; color: #9a6a00; }
+.metric { margin-top: 6px; font: 20px/1.4 var(--pixel); }
+.caption { font-size: 13px; color: #4d5b66; }
+.headline { margin: 8px 0 10px; font-size: 18px; font-weight: 700; }
+.row .value.good { color: var(--green-text); }
+.row .value.bad { color: #c0503f; }
+.callback-risk { padding: 6px 0 2px; text-align: left; font-size: 14px; font-weight: 700; color: #9a6a00; }
+.property { border-bottom: 2px dashed #d8d2bf; }
+.property .row { border-bottom: 0; padding-bottom: 0; }
+.property .story { padding: 0 0 7px; text-align: left; font-size: 13px; color: #4d5b66; }
+.points { margin: 12px 0 4px; font-size: 13px; color: #4d5b66; }
+.takeaway { margin: 14px 0 6px; }
+.takeaway p { margin: 0 0 6px; font-size: 14px; }
 .payoff { margin: 14px 0 4px; }
 .payoff .headline { font-size: 17px; font-weight: 700; }
 .payoff .points { margin-top: 2px; font-size: 13px; color: #4d5b66; }

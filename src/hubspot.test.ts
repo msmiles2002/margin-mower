@@ -3,7 +3,21 @@ import { buildSubmission, hubspotEnabled, isValidEmail, submissionUrl, submitLea
 import type { RoundSummary } from './rules/scoring';
 
 const target = { portalId: '123', formGuid: 'abc-def' };
-const summary: RoundSummary = { stars: 8, maxStars: 10, efficiency: 97, points: 2330, hoursSaved: 0.8, budgetHours: 12, hoursUsed: 11.2, title: 'Pro' };
+const summary: RoundSummary = {
+  stars: 4,
+  maxStars: 5,
+  efficiency: 103,
+  points: 2080,
+  budgetHours: 12,
+  hoursUsed: 11.6,
+  underHours: 0.4,
+  callbackHours: 0.1,
+  callbackItems: 1,
+  netHours: 0.3,
+  hits: 1,
+  fullQuality: false,
+  title: 'Route Pro',
+};
 const page = { pageUri: 'https://bomdata.io/margin-mower/', pageName: 'Margin Mower' };
 const lead = { firstName: 'Pat', company: 'GreenCo', email: 'pat@greenco.com' };
 
@@ -32,8 +46,8 @@ describe('buildSubmission', () => {
         { objectTypeId: '0-1', name: 'firstname', value: 'Pat' },
         { objectTypeId: '0-1', name: 'company', value: 'GreenCo' },
         { objectTypeId: '0-1', name: 'email', value: 'pat@greenco.com' },
-        { objectTypeId: '0-1', name: 'margin_mower_score', value: '2330' },
-        { objectTypeId: '0-1', name: 'margin_mower_stars', value: '8' },
+        { objectTypeId: '0-1', name: 'margin_mower_score', value: '2080' },
+        { objectTypeId: '0-1', name: 'margin_mower_stars', value: '4' },
       ],
       context: page,
     });

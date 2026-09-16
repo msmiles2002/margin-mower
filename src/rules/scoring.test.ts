@@ -39,99 +39,97 @@ describe('efficiency (budget ÷ actual, not capped)', () => {
 });
 
 describe('scoreProperty', () => {
-  it('gives 5 stars for a clean, weed-free, on-budget job', () => {
+  it('scores a clean, on-budget job', () => {
     expect(scoreProperty(perfect)).toMatchObject({
       efficiency: 107,
-      efficiencyStars: 3,
       cut: 100,
-      cutStar: true,
-      weedStar: true,
+      fullQuality: true,
       collisionFree: true,
-      onBudget: true,
+      callbackItems: 0,
+      callbackHours: 0,
+      underHours: 0.4,
+      netHours: 0.4,
       stars: 5,
+      points: 800 + 200 + 40 + CLEAN_RUN_BONUS,
     });
   });
 
-  it('needs every column for the cut star', () => {
-    const s = scoreProperty({ ...perfect, mowedColumns: 79 });
-    expect(s.cut).toBe(98);
-    expect(s.cutStar).toBe(false);
-    expect(s.stars).toBe(4);
+  it('rounds actual hours to tenths first, so efficiency matches the hours shown', () => {
+    const s = scoreProperty({ ...perfect, hoursUsed: 5.63 });
+    expect(s.hoursUsed).toBe(5.6);
+    expect(s.efficiency).toBe(107);
+    expect(s.underHours).toBe(0.4);
   });
 
-  it('needs every weed for the weed star', () => {
-    expect(scoreProperty({ ...perfect, weedsPulled: 3 }).weedStar).toBe(false);
+  it('charges a 0.1 hr callback per missed weed', () => {
+    const s = scoreProperty({ ...perfect, weedsPulled: 3 });
+    expect(s).toMatchObject({ weedsMissed: 1, callbackItems: 1, callbackHours: 0.1, underHours: 0.4, netHours: 0.3, stars: 4 });
+    expect(s.points).toBe(800 + 150 + 30 + CLEAN_RUN_BONUS);
   });
 
-  it('adds under-budget and clean-run bonuses', () => {
-    // 80*10 + 4*50 + 4 tenths * 10 + clean run
-    expect(scoreProperty(perfect).points).toBe(800 + 200 + 40 + CLEAN_RUN_BONUS);
+  it('charges 0.1 hr per started block of 5 uncut columns', () => {
+    const s = scoreProperty({ ...perfect, mowedColumns: 74 });
+    expect(s).toMatchObject({ cut: 92, cutStar: false, uncutColumns: 6, callbackItems: 1, callbackHours: 0.2, netHours: 0.2 });
+    expect(scoreProperty({ ...perfect, mowedColumns: 79 }).callbackHours).toBe(0.1);
   });
 
-  it('only gives the clean run bonus with no collisions', () => {
-    const s = scoreProperty({ ...perfect, hits: 2 });
-    expect(s.collisionFree).toBe(false);
-    expect(s.points).toBe(1040);
+  it('lets callbacks push an early finish over budget', () => {
+    const s = scoreProperty({ ...perfect, hoursUsed: 5.9, weedsPulled: 0 });
+    expect(s).toMatchObject({ underHours: 0.1, callbackHours: 0.4, netHours: -0.3 });
   });
 
-  it('gives no under-budget bonus when grass was skipped', () => {
-    expect(scoreProperty({ ...perfect, mowedColumns: 79 }).points).toBe(790 + 200 + CLEAN_RUN_BONUS);
+  it('scores an over-budget job with collisions', () => {
+    const s = scoreProperty({ ...perfect, hoursUsed: 6.9, hits: 3 });
+    expect(s).toMatchObject({ efficiency: 87, underHours: -0.9, netHours: -0.9, collisionFree: false, stars: 4 });
+    expect(s.points).toBe(800 + 200 - 90);
   });
 
-  it('subtracts 10 points per whole tenth of an hour over budget', () => {
-    const s = scoreProperty({ ...perfect, hoursUsed: 6.35 });
-    expect(s.onBudget).toBe(false);
-    expect(s.points).toBe(800 + 200 - 30 + CLEAN_RUN_BONUS);
-  });
-
-  it('reports hours under and over budget', () => {
-    expect(scoreProperty(perfect).hoursUnder).toBeCloseTo(0.4);
-    expect(scoreProperty(perfect).hoursOver).toBe(0);
-    expect(scoreProperty({ ...perfect, hoursUsed: 6.5 }).hoursOver).toBeCloseTo(0.5);
-    expect(scoreProperty({ ...perfect, hoursUsed: 6.5 }).hoursUnder).toBe(0);
-  });
-
-  it('counts hours saved only for on-budget jobs with both quality stars', () => {
-    expect(scoreProperty(perfect).hoursSaved).toBeCloseTo(0.4);
-    expect(scoreProperty({ ...perfect, weedsPulled: 3 }).hoursSaved).toBe(0);
-    expect(scoreProperty({ ...perfect, mowedColumns: 79 }).hoursSaved).toBe(0);
-    expect(scoreProperty({ ...perfect, hoursUsed: 6.5 }).hoursSaved).toBe(0);
-  });
-
-  it('always gives an idle full-cut run at least one star', () => {
-    const s = scoreProperty({ ...perfect, hoursUsed: 11, weedsPulled: 0, hits: 9 });
+  it('always gives at least one star, even with nothing earned', () => {
+    const s = scoreProperty({ ...perfect, hoursUsed: 11, mowedColumns: 70, weedsPulled: 0, hits: 9 });
     expect(s.efficiencyStars).toBe(0);
+    expect(s.cutStar).toBe(false);
+    expect(s.weedStar).toBe(false);
     expect(s.stars).toBe(1);
+    expect(summarizeRound([s, s]).stars).toBe(1);
   });
 });
 
 describe('titles and rounds', () => {
   it.each([
     [0, 'Rookie'],
-    [4, 'Rookie'],
-    [5, 'Crew Lead'],
-    [7, 'Crew Lead'],
-    [8, 'Pro'],
-    [9, 'Pro'],
-    [10, 'Margin Master'],
+    [2, 'Rookie'],
+    [3, 'Crew Lead'],
+    [4, 'Route Pro'],
+    [5, 'Margin Master'],
   ])('%i stars is %s', (stars, title) => {
     expect(titleFor(stars)).toBe(title);
   });
 
-  it('totals a round', () => {
-    const a = scoreProperty(perfect);
-    const b = scoreProperty({ ...perfect, hoursUsed: 6.9, weedsPulled: 6, weedCount: 7 });
-    expect(b.efficiency).toBe(87);
-    expect(b.stars).toBe(3);
+  it('totals a round in tenths, with one 5-star rating', () => {
+    const a = scoreProperty({ ...perfect, hoursUsed: 5.63 });
+    const b = scoreProperty({ ...perfect, hoursUsed: 5.97, weedsPulled: 3, hits: 1 });
+    expect(b).toMatchObject({ hoursUsed: 6, underHours: 0, netHours: -0.1, stars: 4 });
     expect(summarizeRound([a, b])).toEqual({
-      stars: 8,
-      maxStars: 10,
-      efficiency: 96, // 12 budgeted / 12.5 actual
-      points: 1140 + (800 + 300 - 90 + CLEAN_RUN_BONUS),
-      hoursSaved: 0.4,
+      stars: 4,
+      maxStars: 5,
+      efficiency: 103, // 12.0 / 11.6
+      points: 1140 + (800 + 150 - 10),
       budgetHours: 12,
-      hoursUsed: 12.5,
-      title: 'Pro',
+      hoursUsed: 11.6,
+      underHours: 0.4,
+      callbackHours: 0.1,
+      callbackItems: 1,
+      netHours: 0.3,
+      hits: 1,
+      fullQuality: false,
+      title: 'Route Pro',
     });
+  });
+
+  it('only gives 5 shift stars when both properties earn 5', () => {
+    const five = scoreProperty(perfect);
+    const four = scoreProperty({ ...perfect, weedsPulled: 3 });
+    expect(summarizeRound([five, five]).stars).toBe(5);
+    expect(summarizeRound([five, four]).stars).toBe(4);
   });
 });

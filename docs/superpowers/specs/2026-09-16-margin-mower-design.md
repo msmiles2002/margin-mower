@@ -107,26 +107,38 @@ Obstacle hit boxes (width × height, sitting on the ground):
   - Once over budget, it reads "OVER BUDGET +x.x hrs" with a full coral bar.
   - It replaces the old route-progress bar.
 
-## Scoring (per property, maximum 5 stars; round maximum 10)
+## Scoring (`src/rules/scoring.ts`)
 
-- **Efficiency %** = round(budget ÷ hours used × 100), not capped, so finishing early scores over 100% (6.0 budgeted in 5.6 actual is 107%).
-  - Stars: above 95 → ★★★, above 80 → ★★, above 70 → ★, otherwise none.
-- **Quality:**
-  - ★ for a 100% cut (floor of mowed ÷ mowable × 100 equals 100).
-  - ★ for pulling every weed.
-- **Points:**
+All scoring works in tenths of an hour, the unit every screen shows. Actual hours are rounded to tenths before anything is calculated, so the displayed numbers always add up (12.0 ÷ 11.6 = 103%).
+
+- **Efficiency %** = round(budget ÷ actual × 100), not capped. Finishing early scores over 100%.
+  - The caption reads "Beat the budget by N%", "Right on budget" or "N% behind budget".
+- **Callbacks** (missed work that needs a return visit):
+  - 0.1 hr per missed weed.
+  - 0.1 hr per started block of 5 uncut grass columns.
+  - Callback items = missed weeds, plus 1 if any grass was left uncut.
+- **Labor result:**
+  - Under = budget − actual; negative means over budget.
+  - Net = under − callbacks.
+  - A positive net is "labor hours (truly) saved"; a negative net is over budget.
+  - Collisions already cost time inside Actual, so they show ✗ with no extra penalty.
+- **Stars (one rating, 1–5):**
+  - Per property: efficiency stars (above 95 → 3, above 80 → 2, above 70 → 1) + 1 for a 100% cut + 1 for all weeds, with a minimum of 1.
+  - Shift: the property ratings averaged and rounded down, with a minimum of 1.
+  - No other star displays; the detailed metrics use ✓/✗.
+- **Points** (demoted on screen):
   - +10 per mowed column.
   - +50 per pulled weed.
-  - When on budget and the cut is 100%: +10 per whole 0.1 hour under budget.
-  - When over budget: −10 per whole 0.1 hour over.
-  - Clean run bonus: +100 when there were no collisions.
-- **Hours saved:** budget − hours used, counted only when on budget and both quality stars were earned.
-- **Round totals:**
-  - Stars and points are summed across the properties.
-  - Hours saved is summed and rounded to 0.1.
-  - Overall efficiency = round(total budget ÷ total hours used × 100).
-- **Titles by total stars:** 10 Margin Master, 8–9 Pro, 5–7 Crew Lead, 0–4 Rookie.
-- **Minimum star:** a player who never hops always cuts 100%, so every finished property earns at least one star.
+  - +10 per 0.1 hr of net (negative when over).
+  - +100 clean run bonus when there were no collisions.
+- **Rank (shift stars):** 5 Margin Master, 4 Route Pro, 3 Crew Lead, 1–2 Rookie.
+- **Outcome line** (`outcomeLine` in `src/share/text.ts`), shown under the rank and property names:
+  - "On budget. Full quality." (the yellow badge)
+  - "Clean work. One bump."
+  - "Clean work, over budget."
+  - "Fast route. One callback risk."
+  - "On budget. Two callback risks."
+  - "Over budget. Three callback risks."
 
 ## Screens
 
@@ -143,38 +155,34 @@ Obstacle hit boxes (width × height, sitting on the ground):
    - "6.0 hrs budgeted" and a **LET’S MOW** button.
    - The level is drawn behind the panel.
 3. **Playing:** HUD, canvas and the two control buttons.
-4. **Property card** (wording in `src/screens/cardCopy.ts`):
-   - Property name.
-   - **ON BUDGET. FULL QUALITY.**: a tilted yellow badge that pops in when the property is on budget with both quality stars.
-   - Stars out of 5.
-   - **LABOR PERFORMANCE:**
-     - "NNN% efficiency" with 0–3 stars.
-     - Budget and Actual (in hours).
-     - A variance line:
-       - green "0.4 hrs saved"
-       - amber "0.4 hrs under budget, but a callback is required" when a quality star is missing
-       - coral "0.9 hrs over budget"
-       - "Right on budget" when within a tenth of an hour
+4. **Property card** (wording in `src/screens/cardCopy.ts`, layout pieces in `cardParts.ts`):
+   - Name, outcome line (badge when perfect), and stars out of 5.
+   - **Big numbers:** "107% EFFICIENCY", its caption, and the labor headline:
+     - "0.4 labor hours saved"
+     - "0.3 labor hours truly saved" (after callbacks)
+     - "Callbacks ate the savings"
+     - "Callbacks put you 0.1 hrs over budget"
+     - "0.9 labor hours over budget"
+     - "Right on budget"
+   - **Rows:** Budget and Actual, then Under budget (green) or Over budget (coral), then Callback penalty (−0.1 hrs, coral) when there is one.
    - **QUALITY:**
-     - "Grass cut: N%" ★, with "Hopping over grass left it uncut." under it when it isn't 100%.
-     - "Weeds pulled: x/y" ★.
-     - "No collisions ✓" with "Clean run bonus: +100", or "N collisions (+X hrs) ✗".
-   - **Payoff:** a large headline ("0.4 labor hours saved" / "0.9 labor hours over budget" / "No labor hours saved" / "Right on budget"), then smaller "+1,140 pts".
+     - "Grass cut: N%", "Weeds pulled: x/y", and "No collisions" or "N collisions (+X hrs)", each with ✓/✗.
+     - "Callback risk: N missed items" (amber) when there is one.
+     - "Clean run bonus: +100" when there were no collisions.
+   - Small "+1,140 pts".
    - **HEAD TO PROPERTY 2 →**, or **See my scorecard** after the last property.
-5. **Results** (wording in `shiftCardCopy`, `src/screens/cardCopy.ts`):
-   - "Weekly scorecard", the title, the **ON BUDGET. FULL QUALITY.** badge (when every property earned it), and stars out of 10.
-   - **LABOR PERFORMANCE:**
-     - Overall efficiency with 0–3 stars.
-     - Budget 12.0 hrs and the actual total.
-     - A net variance line: "0.8 hrs saved", "0.5 hrs over budget", "0.8 hrs under budget, 0.4 hrs saved", "… but a callback is required", or "Right on budget".
-   - **QUALITY:** combined grass cut %, weeds pulled and collisions, each with ✓ or ✗.
-   - **BY PROPERTY:** each property's short name, its efficiency and its stars out of 5.
-   - **Payoff:** the labor-hours headline, then smaller "+2,280 pts".
-   - "Real crews using BomData improved labor efficiency 8–10%." This line never appears on the share image.
-   - The small logo, **Book a demo** (always visible), **Share my score** with a status line, the optional HubSpot form, and **Play again**.
-   - `RoundSummary` also carries `budgetHours` and `hoursUsed`, so the summary line and the share image can say "N hrs over budget" (net across the shift) instead of hours saved. Otherwise they show hours saved, "right on budget" or "no hours saved".
-   - Summary line: `⭐ 8/10 · 97% efficiency · 0.8 hrs saved · 2,330 pts`.
-   - Share image: "97% EFFICIENCY | 0.8 HRS SAVED", with a smaller "2,330 PTS" line under it.
+5. **Results / Weekly scorecard** (`shiftCardCopy`):
+   - "Weekly scorecard", the rank (e.g. **Route Pro**), the outcome line (e.g. "Fast route. One callback risk."), and stars out of 5.
+   - The same big numbers and rows as the property card, totaled across the shift (Budget 12.0 hrs).
+   - **QUALITY:** combined checks plus the callback risk line.
+   - **BY PROPERTY:** each property's name and "N% efficiency", with a short story such as "Clean job, under budget" or "Fast finish, one missed weed".
+   - Small points.
+   - Takeaway: "**Fast work only pays when the work is done right.**" / "BomData helps landscaping teams see where labor hours are being won, lost, or hidden."
+   - Buttons: **SHARE MY SCORE** (primary, green) with a status line, the small logo, **See how BomData works** (bomdata.io with UTM tags), the optional HubSpot form, and **Play again**.
+   - The 8–10% claim is no longer shown.
+   - Summary line: `Route Pro · 4/5 stars · 103% efficiency · 0.3 hrs saved · 2,080 pts`.
+   - Share text: "I finished as a Route Pro in Margin Mower: 103% efficiency, 0.3 hrs saved. Can you mow on budget? https://bomdata.io/margin-mower/"
+   - Share image: logo, MARGIN MOWER, rank, outcome line, 5 stars, "103% EFFICIENCY | 0.3 HRS SAVED", a smaller points line, the tagline and the URL.
 
 Focus moves to each panel's first button, so Enter or Space works on a keyboard. The coral focus outline shows only after the Tab key is pressed (`body.using-keyboard`); game keys don't turn it on, and pointer input hides it again. Game keys are only handled while playing.
 
@@ -251,12 +259,11 @@ Particles and floating text are visual effects. They stay in `run.ts` state so t
   - Phones use the native share sheet with a PNG.
   - Desktop downloads the PNG and opens a LinkedIn share link for `https://bomdata.io/margin-mower/`.
   - `?og` downloads a sample card for the social preview image.
-  - Share text: "I scored 8/10 stars with 97% efficiency in Margin Mower. Can you mow on budget? https://bomdata.io/margin-mower/"
 - **HubSpot:**
   - An optional form (first name, company, email) sent to the public Forms API, with hidden `margin_mower_score` and `margin_mower_stars` fields.
   - It's hidden until the portal ID and form GUID are set in `config.ts`.
   - If sending fails, the form shows "Couldn't save, try again".
-- **Demo link:** `https://bomdata.io/contact/?utm_source=linkedin&utm_medium=game&utm_campaign=margin-mower`.
+- **Site link:** "See how BomData works" and the logo go to `https://bomdata.io/?utm_source=linkedin&utm_medium=game&utm_campaign=margin-mower`. The landing page sells the demo.
 - **Errors:** any uncaught error shows a "Something went wrong / Reload" panel.
 
 ## Testing

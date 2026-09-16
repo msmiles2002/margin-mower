@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BUDGET_HOURS, DUCK_SECONDS, END_PADDING, HOP_VELOCITY, START_DIST, STALL_SECONDS } from './constants';
 import type { CrewId } from './crews';
 import type { Property } from './levels';
+import { scoreProperty } from './scoring';
 import { createRun, cutPercent, hop, hoursUsed, isGrounded, pressDuck, releaseDuck, resultOf, tickRun, type Run } from './run';
 
 const noEffects = () => 0.99; // never spawns clippings; bursts still work
@@ -228,5 +229,6 @@ describe('resultOf', () => {
     const result = resultOf(run);
     expect(result).toMatchObject({ budgetHours: 6, mowedColumns: 6, mowableColumns: 6, weedsPulled: 0, weedCount: 1, hits: 1 });
     expect(result.hoursUsed).toBeCloseTo(hoursUsed(run));
+    expect(scoreProperty(result).hoursUsed).toBe(Math.round(hoursUsed(run) * 10) / 10);
   });
 });

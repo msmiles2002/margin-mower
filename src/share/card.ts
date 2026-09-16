@@ -1,6 +1,6 @@
 import logoUrl from '../assets/bomdata-logo.png';
 import type { RoundSummary } from '../rules/scoring';
-import { formatPoints, laborPhrase, starString } from './text';
+import { formatPoints, laborPhrase, outcomeLine, starString } from './text';
 
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 627;
@@ -31,25 +31,31 @@ function drawCard(ctx: CanvasRenderingContext2D, s: RoundSummary, logo: HTMLImag
   ctx.fillText('MARGIN MOWER', CENTER, 150);
 
   ctx.fillStyle = GREEN_TEXT;
-  ctx.font = '28px "Press Start 2P"';
-  ctx.fillText(s.title.toUpperCase(), CENTER, 215);
+  ctx.font = '30px "Press Start 2P"';
+  ctx.fillText(s.title.toUpperCase(), CENTER, 212);
+
+  ctx.fillStyle = INK;
+  ctx.font = 'bold 28px "DM Sans", sans-serif';
+  ctx.fillText(outcomeLine(s).text, CENTER, 258);
 
   ctx.fillStyle = '#e0a800';
-  ctx.font = '72px "DM Sans", sans-serif';
-  ctx.fillText(starString(s.stars, s.maxStars), CENTER, 310);
+  ctx.font = '64px "DM Sans", sans-serif';
+  ctx.fillText(starString(s.stars, s.maxStars), CENTER, 330);
 
   ctx.fillStyle = INK;
   ctx.font = '22px "Press Start 2P"';
-  ctx.fillText(`${s.efficiency}% EFFICIENCY | ${laborPhrase(s).toUpperCase()}`, CENTER, 385);
-  ctx.font = '18px "Press Start 2P"';
-  ctx.fillText(`${formatPoints(s.points)} PTS`, CENTER, 425);
+  ctx.fillText(`${s.efficiency}% EFFICIENCY | ${laborPhrase(s).toUpperCase()}`, CENTER, 395);
+  ctx.fillStyle = '#4d5b66';
+  ctx.font = '16px "Press Start 2P"';
+  ctx.fillText(`${formatPoints(s.points)} PTS`, CENTER, 432);
 
+  ctx.fillStyle = INK;
   ctx.font = 'bold 32px "DM Sans", sans-serif';
-  ctx.fillText('Can you mow on budget?', CENTER, 480);
+  ctx.fillText('Can you mow on budget?', CENTER, 486);
 
   ctx.fillStyle = GREEN_TEXT;
   ctx.font = '26px "DM Sans", sans-serif';
-  ctx.fillText('bomdata.io/margin-mower', CENTER, 522);
+  ctx.fillText('bomdata.io/margin-mower', CENTER, 526);
 
   const logoWidth = (logo.naturalWidth / logo.naturalHeight) * LOGO_HEIGHT;
   ctx.drawImage(logo, 128, 84, logoWidth, LOGO_HEIGHT);

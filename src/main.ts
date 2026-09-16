@@ -57,7 +57,21 @@ const controls = setupControls(
   rng,
 );
 const hubspotTarget = { portalId: config.hubspotPortalId, formGuid: config.hubspotFormGuid };
-const SAMPLE_SUMMARY: RoundSummary = { stars: 8, maxStars: 10, efficiency: 97, points: 2330, hoursSaved: 0.8, budgetHours: 12, hoursUsed: 11.2, title: 'Pro' };
+const SAMPLE_SUMMARY: RoundSummary = {
+  stars: 4,
+  maxStars: 5,
+  efficiency: 103,
+  points: 2080,
+  budgetHours: 12,
+  hoursUsed: 11.6,
+  underHours: 0.4,
+  callbackHours: 0.1,
+  callbackItems: 1,
+  netHours: 0.3,
+  hits: 1,
+  fullQuality: false,
+  title: 'Route Pro',
+};
 
 async function playRound(): Promise<NamedScore[]> {
   const results: NamedScore[] = [];
@@ -98,7 +112,6 @@ async function main(): Promise<void> {
     const results = await playRound();
     const summary = summarizeRound(results.map((r) => r.score));
     await showResults(overlay, results, summary, {
-      demoUrl: withUtm(config.demoUrl),
       siteUrl: withUtm(config.siteUrl),
       showLeadForm: hubspotEnabled(hubspotTarget),
       onShare: async () => shareResult(await renderCardBlob(summary), summary),

@@ -1,57 +1,100 @@
-// Wording for the card shown after each property: budget → actual → variance → efficiency, then quality.
-import { CLEAN_RUN_BONUS, efficiencyStars, type PropertyScore, type RoundSummary } from '../rules/scoring';
-import { formatHours, formatPoints } from '../share/text';
+// Wording for the property card and the final scorecard:
+// rank → efficiency → labor saved → budget / actual / variance / callbacks → quality.
+import { CLEAN_RUN_BONUS, type PropertyScore, type RoundSummary } from '../rules/scoring';
+import { counted, formatHours, formatPoints, outcomeLine } from '../share/text';
 
-export type VarianceTone = 'good' | 'warn' | 'bad';
+export type Tone = 'good' | 'warn' | 'bad';
 
-export interface PropertyCardCopy {
-  celebration: string | null;
-  efficiency: string;
-  budget: string;
-  actual: string;
-  variance: { text: string; tone: VarianceTone };
-  collisions: { text: string; ok: boolean };
-  cleanRunBonus: string | null;
-  headline: string;
-  points: string;
+export interface LaborLine {
+  label: string;
+  value: string;
+  tone: Tone | null;
+}
+
+export interface CheckLine {
+  text: string;
+  ok: boolean;
+}
+
+interface LaborFacts {
+  budgetHours: number;
+  hoursUsed: number;
+  underHours: number;
+  callbackHours: number;
+  netHours: number;
+  efficiency: number;
 }
 
 const hrs = (hours: number) => `${formatHours(hours)} hrs`;
-const isZero = (hours: number) => formatHours(hours) === '0.0';
+const pointsText = (points: number) => `${points >= 0 ? '+' : ''}${formatPoints(points)} pts`;
+
+export function efficiencyCaption(efficiency: number): string {
+  if (efficiency > 100) return `Beat the budget by ${efficiency - 100}%`;
+  if (efficiency === 100) return 'Right on budget';
+  return `${100 - efficiency}% behind budget`;
+}
+
+export function laborLines(f: LaborFacts): LaborLine[] {
+  const lines: LaborLine[] = [
+    { label: 'Budget', value: hrs(f.budgetHours), tone: null },
+    { label: 'Actual', value: hrs(f.hoursUsed), tone: null },
+  ];
+  if (f.underHours > 0) lines.push({ label: 'Under budget', value: hrs(f.underHours), tone: 'good' });
+  if (f.underHours < 0) lines.push({ label: 'Over budget', value: hrs(-f.underHours), tone: 'bad' });
+  if (f.callbackHours > 0) lines.push({ label: 'Callback penalty', value: `−${hrs(f.callbackHours)}`, tone: 'bad' });
+  return lines;
+}
+
+export function laborHeadline(f: LaborFacts): { text: string; tone: Tone } {
+  const net = formatHours(Math.abs(f.netHours));
+  if (f.netHours > 0) {
+    return { text: `${net} labor hours ${f.callbackHours > 0 ? 'truly saved' : 'saved'}`, tone: 'good' };
+  }
+  if (f.netHours === 0) {
+    return f.underHours > 0 ? { text: 'Callbacks ate the savings', tone: 'warn' } : { text: 'Right on budget', tone: 'good' };
+  }
+  if (f.underHours >= 0) return { text: `Callbacks put you ${net} hrs over budget`, tone: 'bad' };
+  return { text: `${net} labor hours over budget`, tone: 'bad' };
+}
+
+function callbackRisk(items: number): string | null {
+  return items === 0 ? null : `Callback risk: ${items} missed item${items === 1 ? '' : 's'}`;
+}
+
+function collisionsLine(hits: number, extra: string): CheckLine {
+  return hits === 0 ? { text: 'No collisions', ok: true } : { text: `${hits} collision${hits === 1 ? '' : 's'}${extra}`, ok: false };
+}
+
+export interface CardCopy {
+  outcome: { text: string; perfect: boolean };
+  efficiency: string;
+  efficiencyCaption: string;
+  headline: { text: string; tone: Tone };
+  labor: LaborLine[];
+  quality: CheckLine[];
+  callbackRisk: string | null;
+  points: string;
+}
+
+export interface PropertyCardCopy extends CardCopy {
+  cleanRunBonus: string | null;
+}
 
 export function propertyCardCopy(score: PropertyScore, hoursPerBump: number): PropertyCardCopy {
-  const fullQuality = score.cutStar && score.weedStar;
-
-  let variance: PropertyCardCopy['variance'];
-  let headline: string;
-  if (!score.onBudget && !isZero(score.hoursOver)) {
-    variance = { text: `${hrs(score.hoursOver)} over budget`, tone: 'bad' };
-    headline = `${formatHours(score.hoursOver)} labor hours over budget`;
-  } else if (isZero(score.hoursUnder)) {
-    variance = { text: 'Right on budget', tone: 'good' };
-    headline = 'Right on budget';
-  } else if (fullQuality) {
-    variance = { text: `${hrs(score.hoursUnder)} saved`, tone: 'good' };
-    headline = `${formatHours(score.hoursUnder)} labor hours saved`;
-  } else {
-    variance = { text: `${hrs(score.hoursUnder)} under budget, but a callback is required`, tone: 'warn' };
-    headline = 'No labor hours saved';
-  }
-
-  const collisions = score.collisionFree
-    ? { text: 'No collisions', ok: true }
-    : { text: `${score.hits} collision${score.hits === 1 ? '' : 's'} (+${hrs(score.hits * hoursPerBump)})`, ok: false };
-
   return {
-    celebration: score.onBudget && fullQuality ? 'ON BUDGET. FULL QUALITY.' : null,
+    outcome: outcomeLine(score),
     efficiency: `${score.efficiency}% efficiency`,
-    budget: hrs(score.budgetHours),
-    actual: hrs(score.hoursUsed),
-    variance,
-    collisions,
+    efficiencyCaption: efficiencyCaption(score.efficiency),
+    headline: laborHeadline(score),
+    labor: laborLines(score),
+    quality: [
+      { text: `Grass cut: ${score.cut}%`, ok: score.cutStar },
+      { text: `Weeds pulled: ${score.weedsPulled}/${score.weedCount}`, ok: score.weedStar },
+      collisionsLine(score.hits, ` (+${hrs(score.hits * hoursPerBump)})`),
+    ],
+    callbackRisk: callbackRisk(score.callbackItems),
     cleanRunBonus: score.collisionFree ? `Clean run bonus: +${CLEAN_RUN_BONUS}` : null,
-    headline,
-    points: `${score.points >= 0 ? '+' : ''}${formatPoints(score.points)} pts`,
+    points: pointsText(score.points),
   };
 }
 
@@ -60,71 +103,50 @@ export interface NamedScore {
   score: PropertyScore;
 }
 
-export interface CheckLine {
-  text: string;
-  ok: boolean;
+export interface ShiftCardCopy extends CardCopy {
+  properties: { name: string; efficiency: string; story: string }[];
+  takeaway: readonly string[];
 }
 
-export interface ShiftCardCopy {
-  celebration: string | null;
-  efficiency: string;
-  efficiencyStars: number;
-  budget: string;
-  actual: string;
-  variance: { text: string; tone: VarianceTone };
-  cut: CheckLine;
-  weeds: CheckLine;
-  collisions: CheckLine;
-  properties: { name: string; stars: number; efficiency: string }[];
-  headline: string;
-  points: string;
+// A short story for one property on the final scorecard, e.g. "Fast finish, one missed weed".
+export function propertyStory(s: PropertyScore): string {
+  if (s.fullQuality && s.collisionFree) {
+    const labor = s.underHours > 0 ? 'under budget' : s.underHours === 0 ? 'on budget' : s.underHours >= -0.3 ? 'just over budget' : 'over budget';
+    return `Clean job, ${labor}`;
+  }
+  const labor = s.underHours > 0 ? 'Fast finish' : s.underHours === 0 ? 'On budget' : s.underHours >= -0.3 ? 'Just over budget' : 'Over budget';
+  if (s.fullQuality) return `${labor}, ${counted(s.hits, 'bump').toLowerCase()}`;
+  if (s.weedsMissed > 0 && s.uncutColumns > 0) return `${labor}, missed weeds and grass`;
+  if (s.weedsMissed > 0) return `${labor}, ${counted(s.weedsMissed, 'missed weed').toLowerCase()}`;
+  return `${labor}, grass left uncut`;
 }
 
-// Wording for the final scorecard: the whole shift, netted across properties.
+export const TAKEAWAY: readonly string[] = [
+  'Fast work only pays when the work is done right.',
+  'BomData helps landscaping teams see where labor hours are being won, lost, or hidden.',
+];
+
 export function shiftCardCopy(results: readonly NamedScore[], summary: RoundSummary): ShiftCardCopy {
   const scores = results.map((r) => r.score);
   const sum = (pick: (s: PropertyScore) => number) => scores.reduce((total, s) => total + pick(s), 0);
-  const over = summary.hoursUsed - summary.budgetHours;
-  const under = -over;
-  const saved = summary.hoursSaved;
-
-  let variance: ShiftCardCopy['variance'];
-  let headline: string;
-  if (over > 0 && !isZero(over)) {
-    variance = { text: `${hrs(over)} over budget`, tone: 'bad' };
-    headline = `${formatHours(over)} labor hours over budget`;
-  } else if (isZero(under)) {
-    variance = { text: 'Right on budget', tone: 'good' };
-    headline = 'Right on budget';
-  } else if (isZero(saved)) {
-    variance = { text: `${hrs(under)} under budget, but a callback is required`, tone: 'warn' };
-    headline = 'No labor hours saved';
-  } else if (formatHours(saved) === formatHours(under)) {
-    variance = { text: `${hrs(saved)} saved`, tone: 'good' };
-    headline = `${formatHours(saved)} labor hours saved`;
-  } else {
-    variance = { text: `${hrs(under)} under budget, ${hrs(saved)} saved`, tone: 'warn' };
-    headline = `${formatHours(saved)} labor hours saved`;
-  }
-
   const mowable = sum((s) => s.mowableColumns);
   const cut = mowable === 0 ? 100 : Math.floor((sum((s) => s.mowedColumns) / mowable) * 100);
   const weedsPulled = sum((s) => s.weedsPulled);
   const weedCount = sum((s) => s.weedCount);
-  const hits = sum((s) => s.hits);
-
   return {
-    celebration: scores.every((s) => s.onBudget && s.cutStar && s.weedStar) ? 'ON BUDGET. FULL QUALITY.' : null,
+    outcome: outcomeLine(summary),
     efficiency: `${summary.efficiency}% efficiency`,
-    efficiencyStars: efficiencyStars(summary.efficiency),
-    budget: hrs(summary.budgetHours),
-    actual: hrs(summary.hoursUsed),
-    variance,
-    cut: { text: `Grass cut: ${cut}%`, ok: cut === 100 },
-    weeds: { text: `Weeds pulled: ${weedsPulled}/${weedCount}`, ok: weedsPulled === weedCount },
-    collisions: hits === 0 ? { text: 'No collisions', ok: true } : { text: `${hits} collision${hits === 1 ? '' : 's'}`, ok: false },
-    properties: results.map((r) => ({ name: r.name, stars: r.score.stars, efficiency: `${r.score.efficiency}%` })),
-    headline,
-    points: `${summary.points >= 0 ? '+' : ''}${formatPoints(summary.points)} pts`,
+    efficiencyCaption: efficiencyCaption(summary.efficiency),
+    headline: laborHeadline(summary),
+    labor: laborLines(summary),
+    quality: [
+      { text: `Grass cut: ${cut}%`, ok: scores.every((s) => s.cutStar) },
+      { text: `Weeds pulled: ${weedsPulled}/${weedCount}`, ok: weedsPulled === weedCount },
+      collisionsLine(summary.hits, ''),
+    ],
+    callbackRisk: callbackRisk(summary.callbackItems),
+    properties: results.map((r) => ({ name: r.name, efficiency: `${r.score.efficiency}% efficiency`, story: propertyStory(r.score) })),
+    takeaway: TAKEAWAY,
+    points: pointsText(summary.points),
   };
 }

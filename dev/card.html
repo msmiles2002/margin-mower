@@ -30,6 +30,7 @@
       const cases = {
         perfect: base,
         over: { ...base, hoursUsed: 6.9, hits: 3, weedsPulled: 3 },
+        example: { ...base, hoursUsed: 5.97, weedsPulled: 3, hits: 1 },
         skipped: { ...base, mowedColumns: 70, weedsPulled: 2 },
       };
       const q = new URLSearchParams(location.search);
@@ -38,11 +39,11 @@
       const overlay = document.getElementById('overlay');
       if (q.get('screen') === 'results') {
         const results = [
-          { name: 'North Valley', score: scoreProperty(base) },
+          { name: 'North Valley', score: scoreProperty({ ...base, hoursUsed: 5.63 }) },
           { name: 'Oak Creek', score: scoreProperty(input) },
         ];
         showResults(overlay, results, summarizeRound(results.map((r) => r.score)), {
-          demoUrl: '#', siteUrl: '#', showLeadForm: false, onShare: async () => 'cancelled', onSubmitLead: async () => false,
+          siteUrl: '#', showLeadForm: false, onShare: async () => 'cancelled', onSubmitLead: async () => false,
         });
       } else {
         showPropertyCard(overlay, PROPERTIES[0], scoreProperty(input), 0.2, 0, 2);

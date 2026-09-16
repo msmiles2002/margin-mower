@@ -71,5 +71,5 @@ check both `https://msmiles2002.github.io/margin-mower/` and `https://bomdata.io
 - [ ] Both properties, their property cards and the scorecard appear; Play again restarts
 - [ ] Share opens the phone share sheet (or downloads the image and opens LinkedIn on desktop)
 - [ ] A lead form submission appears in HubSpot with score and stars
-- [ ] Book a demo opens `bomdata.io/contact/` with `utm_campaign=margin-mower`
+- [ ] See how BomData works opens `bomdata.io` with `utm_campaign=margin-mower`
 - [ ] LinkedIn Post Inspector shows the preview image and title

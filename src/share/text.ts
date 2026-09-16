@@ -12,20 +12,43 @@ export function formatHours(hours: number): string {
   return hours.toFixed(1);
 }
 
-const isZero = (hours: number) => formatHours(hours) === '0.0';
+const NUMBER_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
 
-// The shift's labor result in a few words: over budget (net), hours saved, or neither.
+// "One callback risk", "Two bumps", "12 bumps"
+export function counted(count: number, noun: string): string {
+  return `${NUMBER_WORDS[count] ?? String(count)} ${noun}${count === 1 ? '' : 's'}`;
+}
+
+export interface OutcomeFacts {
+  underHours: number;
+  callbackItems: number;
+  hits: number;
+  fullQuality: boolean;
+}
+
+// The one-line story of a property or a shift, shown under the rank.
+export function outcomeLine(o: OutcomeFacts): { text: string; perfect: boolean } {
+  const notOver = o.underHours >= 0;
+  if (o.fullQuality && notOver && o.hits === 0) return { text: 'On budget. Full quality.', perfect: true };
+  if (o.fullQuality && notOver) return { text: `Clean work. ${counted(o.hits, 'bump')}.`, perfect: false };
+  if (o.fullQuality) return { text: 'Clean work, over budget.', perfect: false };
+  const risk = counted(o.callbackItems, 'callback risk');
+  if (o.underHours > 0) return { text: `Fast route. ${risk}.`, perfect: false };
+  if (o.underHours === 0) return { text: `On budget. ${risk}.`, perfect: false };
+  return { text: `Over budget. ${risk}.`, perfect: false };
+}
+
+// The shift's labor result after callbacks, in a few words.
 export function laborPhrase(s: RoundSummary): string {
-  const over = s.hoursUsed - s.budgetHours;
-  if (over > 0 && !isZero(over)) return `${formatHours(over)} hrs over budget`;
-  if (!isZero(s.hoursSaved)) return `${formatHours(s.hoursSaved)} hrs saved`;
-  return isZero(over) ? 'right on budget' : 'no hours saved';
+  if (s.netHours > 0) return `${formatHours(s.netHours)} hrs saved`;
+  if (s.netHours < 0) return `${formatHours(-s.netHours)} hrs over budget`;
+  return 'right on budget';
 }
 
 export function summaryLine(s: RoundSummary): string {
-  return `⭐ ${s.stars}/${s.maxStars} · ${s.efficiency}% efficiency · ${laborPhrase(s)} · ${formatPoints(s.points)} pts`;
+  return `${s.title} · ${s.stars}/${s.maxStars} stars · ${s.efficiency}% efficiency · ${laborPhrase(s)} · ${formatPoints(s.points)} pts`;
 }
 
 export function shareText(s: RoundSummary, pageUrl: string): string {
-  return `I scored ${s.stars}/${s.maxStars} stars with ${s.efficiency}% efficiency in Margin Mower. Can you mow on budget? ${pageUrl}`;
+  return `I finished as a ${s.title} in Margin Mower: ${s.efficiency}% efficiency, ${laborPhrase(s)}. Can you mow on budget? ${pageUrl}`;
 }
