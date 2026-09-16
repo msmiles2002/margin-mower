@@ -227,9 +227,12 @@ function house(x, base, variant) {
   win(x + 10, top + 12); win(x + 70, top + 12);
   box(x + 40, top + 18, 16, 28, shade(roof, 0.15)); px(x + 52, top + 32, 2, 2, '#f5c542');
   px(x + 34, base - 3, 28, 3, '#d9d4c7');
-  // picket fence along sidewalk
-  for (let fx = x - 20; fx < x + 130; fx += 7) { px(fx, base + 1, 4, 9, '#fbfbf5'); px(fx, base + 1, 4, 1, OL); }
-  px(x - 20, base + 4, 150, 2, '#e6e3d8');
+  // white picket fence on the back edge of the sidewalk, with a gap for the front walk
+  for (const [a, b] of [[x - 37, x + 32], [x + 64, x + 133]]) {
+    px(a, base - 9, b - a, 2, OL); px(a, base - 4, b - a, 2, OL);
+    px(a, base - 8.5, b - a, 1, '#e6e3d8'); px(a, base - 3.5, b - a, 1, '#e6e3d8');
+    for (let fx = a + 1; fx + 4 <= b; fx += 8) poly([[fx, base], [fx, base - 11], [fx + 2, base - 13], [fx + 4, base - 11], [fx + 4, base]], '#fbfbf5');
+  }
   // mailbox
   px(x + 124, base - 4, 2, 14, '#5a4030'); box(x + 119, base - 10, 12, 7, '#2f5fa8'); px(x + 131, base - 12, 1, 5, '#e23b3b');
 }

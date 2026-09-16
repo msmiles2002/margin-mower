@@ -23,7 +23,7 @@ It's a side-scrolling runner. The crew drives right automatically, and the camer
 | # | Property | Crew | Obstacles | Weeds | Backdrop |
 |---|---|---|---|---|---|
 | 1 | North Valley Office Park | Ride-on (can't duck) | Hop: sprinkler, rock, picnic table, boy walking a dog. No trees. | 4 | Office buildings, hedges |
-| 2 | Oak Creek HOA | Push crew | Hop: rock, shrub, neighbor with a cane. Duck: low branches. | 7 | Houses, mailboxes, trees |
+| 2 | Oak Creek HOA | Push crew | Hop: rock, shrub, neighbor with a cane. Duck: low branches. | 7 | Houses, white picket fences, mailboxes, trees |
 
 ### Controls
 
@@ -145,7 +145,7 @@ Focus moves to each panel's first button, so Enter or Space works on a keyboard.
 ## Visual style (style B, "bold cartoon")
 
 - **Scene:** a Paperboy-like 3/4 lawn strip with a sidewalk behind and a street with parked cars in front.
-  - The backdrop scrolls at 0.85× speed: 3/4-view glass office buildings with "N.VALLEY" signs and hedges, or 3/4-view houses with mailboxes and trees behind.
+  - The backdrop scrolls at 0.85× speed: 3/4-view glass office buildings with "N.VALLEY" signs and hedges, or 3/4-view houses with white picket fences along the back edge of the sidewalk (a gap at each front walk), mailboxes and trees behind.
   - Clouds scroll at 0.1×.
 - **Art style:** 2-unit dark outlines (`#1b1b24`), big heads with caps and faces, and highlights.
 - **Sprites:** all art is drawn in code with no image files. It must match `prototype/sprites.js` style B:

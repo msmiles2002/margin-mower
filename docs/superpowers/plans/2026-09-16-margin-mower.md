@@ -1997,6 +1997,21 @@ export function drawClouds(cam: number): void {
 const HOUSE_BODIES = ['#f2d7a6', '#bcd6ea', '#f3c0ae', '#d3e6b5', '#e8e2f2'];
 const HOUSE_ROOFS = ['#9b3d31', '#4d5d7a', '#6b4a3a', '#3f6e4f', '#7a4f7f'];
 
+// White picket fence standing on the back edge of the sidewalk, with a gap for the front walk.
+function picketFence(from: number, to: number, base: number, gapFrom: number, gapTo: number): void {
+  const top = base - 13;
+  const segments: [number, number][] = [[from, gapFrom], [gapTo, to]];
+  for (const [a, b] of segments) {
+    rect(a, top + 4, b - a, 2, OL);
+    rect(a, top + 9, b - a, 2, OL);
+    rect(a, top + 4.5, b - a, 1, '#e6e3d8');
+    rect(a, top + 9.5, b - a, 1, '#e6e3d8');
+    for (let px = a + 1; px + 4 <= b; px += 8) {
+      poly([[px, base], [px, top + 2], [px + 2, top], [px + 4, top + 2], [px + 4, base]], '#fbfbf5', OL, 0.8);
+    }
+  }
+}
+
 function house(x: number, base: number, variant: number): void {
   const body = HOUSE_BODIES[variant % 5];
   const roof = HOUSE_ROOFS[variant % 5];
@@ -2027,6 +2042,7 @@ function house(x: number, base: number, variant: number): void {
   box(x + 40, top + 18, 16, 28, shade(roof, 0.15));
   rect(x + 52, top + 32, 2, 2, '#f5c542');
   rect(x + 34, base - 3, 28, 3, '#d9d4c7');
+  picketFence(x - 37, x + 133, base, x + 32, x + 64);
   // mailbox
   rect(x + 124, base - 4, 2, 14, '#5a4030');
   box(x + 119, base - 10, 12, 7, '#2f5fa8');
@@ -2343,7 +2359,7 @@ Expected: all tests pass, `tsc` is clean, and the build succeeds.
 
 Then run `yarn dev`, and compare each of these against the same view in `prototype/margin-mower-runner.html?peek=...`:
 - `/dev/peek.html?p=0&at=1440`: North Valley office buildings with "N.VALLEY" signs and hedges. The ride-on crew is on a dirt pad, and the boy walking the dog is on the next pad. No grass shows on the pads.
-- `/dev/peek.html?p=1&at=380&duck=1`: Oak Creek houses with mailboxes. The push crew is ducking under a leafy branch whose tree trunk and leaf-cluster crown stand behind the sidewalk. A bed holds two dandelion weeds. The "⬇ DUCK" and "⬇ PULL" hint bubbles are showing.
+- `/dev/peek.html?p=1&at=380&duck=1`: Oak Creek houses with white picket fences above the sidewalk and mailboxes. The push crew is ducking under a leafy branch whose tree trunk and leaf-cluster crown stand behind the sidewalk. A bed holds two dandelion weeds. The "⬇ DUCK" and "⬇ PULL" hint bubbles are showing.
 
 Stop the dev server when you're done.
 
