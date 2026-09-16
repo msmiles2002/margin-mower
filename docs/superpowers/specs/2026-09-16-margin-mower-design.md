@@ -176,7 +176,7 @@ Obstacle hit boxes (width × height, sitting on the ground):
    - Summary line: `⭐ 8/10 · 97% efficiency · 0.8 hrs saved · 2,330 pts`.
    - Share image: "97% EFFICIENCY | 0.8 HRS SAVED", with a smaller "2,330 PTS" line under it.
 
-Focus moves to each panel's first button, so Enter or Space works on a keyboard. The coral focus outline shows only after a key is pressed (`body.using-keyboard`), and pointer input hides it again. Game keys are only handled while playing.
+Focus moves to each panel's first button, so Enter or Space works on a keyboard. The coral focus outline shows only after the Tab key is pressed (`body.using-keyboard`); game keys don't turn it on, and pointer input hides it again. Game keys are only handled while playing.
 
 ## Visual style (style B, "bold cartoon")
 

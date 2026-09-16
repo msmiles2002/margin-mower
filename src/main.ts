@@ -32,8 +32,11 @@ const hud: HudElements = {
   controls: byId('controls', HTMLDivElement),
 };
 
-// Focus outlines only after keyboard use; panels still pre-focus their main button so Enter works.
-window.addEventListener('keydown', () => document.body.classList.add('using-keyboard'));
+// Focus outlines only while navigating with Tab (not after game keys like arrows or Space);
+// panels still pre-focus their main button so Enter works.
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Tab') document.body.classList.add('using-keyboard');
+});
 window.addEventListener('pointerdown', () => document.body.classList.remove('using-keyboard'));
 
 window.addEventListener('error', () => showFatal(overlay));
