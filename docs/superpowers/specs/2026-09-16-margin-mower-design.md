@@ -25,7 +25,7 @@ A round is three properties, about 30 seconds each, roughly 2 minutes in total i
 
 ### Board
 
-- Portrait grid, 12 columns × 16 rows, scaled by whole-number multiples to fit the screen (pixel-perfect).
+- Portrait grid, 12 columns × 16 rows of 16px tiles. The canvas is drawn at a whole-number multiple of device pixels, so the art stays crisp while filling the screen.
 - Tile types:
   - **turf:** must be mowed
   - **narrow turf:** must be mowed; the ride-on crew can't enter it
