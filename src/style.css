@@ -247,3 +247,44 @@ body.mobile .panel > .btn:last-child,
 body.mobile .panel > .button-row:last-child { margin-top: auto; }
 body.mobile .panel > .btn:last-child { padding: 18px 12px; font-size: 13px; }
 body.mobile .celebrate { align-self: center; }
+
+/* Compact cards on phones so every panel fits a ~560px-tall screen without scrolling. */
+body.mobile .panel,
+body.mobile .panel.results { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); }
+body.mobile .panel h1 { font-size: 13px; margin-bottom: 6px; }
+body.mobile .panel h2 { font-size: 10px; margin-bottom: 6px; }
+body.mobile .panel p { margin-bottom: 8px; }
+body.mobile .logo img { height: 44px; }
+body.mobile .results .logo.small img { height: 28px; }
+body.mobile .outcome { margin-bottom: 2px; font-size: 14px; }
+body.mobile .celebrate { margin-bottom: 4px; padding: 4px 8px; font-size: 9px; }
+body.mobile .stars { margin: 0 0 2px; font-size: 22px; }
+body.mobile .metric { margin-top: 0; font-size: 17px; }
+body.mobile .caption { font-size: 12px; }
+body.mobile .caption.spaced { margin-bottom: 6px; }
+body.mobile .headline { margin: 4px 0 6px; font-size: 15px; }
+body.mobile .row,
+body.mobile .results .row { padding: 3px 0; font-size: 14px; }
+body.mobile .section { margin: 8px 0 4px; }
+body.mobile .checks { display: flex; flex-wrap: wrap; gap: 6px; }
+body.mobile .checks .row {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 12px;
+  background: #f0ece0;
+  font-size: 13px;
+}
+body.mobile .checks .row .check,
+body.mobile .checks .row .cross { font-size: 14px; }
+body.mobile .callback-risk,
+body.mobile .bonus { padding-top: 5px; font-size: 12px; }
+body.mobile .points { margin: 6px 0 2px; font-size: 12px; }
+body.mobile .takeaway { margin: 6px 0 2px; }
+body.mobile .takeaway p { margin-bottom: 4px; font-size: 13px; }
+body.mobile .btn { margin-top: 8px; padding: 12px; }
+body.mobile .panel > .btn:last-child { padding: 15px 12px; }
+body.mobile .tip,
+body.mobile .keys { margin: 8px 0; padding: 8px 10px; font-size: 14px; }

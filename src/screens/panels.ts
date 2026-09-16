@@ -58,7 +58,7 @@ export function showPropertyCard(
     ...headlineBlock(copy),
     ...laborRows(copy.labor),
     el('div', { className: 'section', text: 'QUALITY' }),
-    ...checkRows(copy.quality),
+    el('div', { className: 'checks' }, checkRows(copy.quality)),
     ...note(copy.callbackRisk, 'callback-risk'),
     ...note(copy.cleanRunBonus, 'bonus'),
     el('div', { className: 'points', text: copy.points }),

@@ -115,6 +115,7 @@ Obstacle hit boxes (width × height, sitting on the ground):
   - Short, wide phone screens widen the view up to 480; very wide ones use the classic view.
 - **While playing:** the game fills the top of the screen, and the bottom 34% is a thumb pad with two large rounded buttons, "⬆ HOP (tap · flick up · ↑)" and "⬇ DUCK · PULL (tap · flick down · ↓)". Flicks still work anywhere on the page.
 - **Panels are bottom sheets:** full width, rounded top corners, at least 60% of the screen tall, content centered, and the main button at the bottom in thumb reach. The game is drawn in the space above the sheet, so the scene stays visible behind the title, intro and cards.
+- **Compact panels:** on phones, cards use tighter type and spacing, and the QUALITY results become wrapping chips ("✓ Grass cut: 100%", "✗ Weeds pulled: 3/4", "✗ 1 collision"). Every panel, including the worst-case property card and scorecard, fits a 375 × 553 screen (iPhone SE with Safari's toolbars) without scrolling.
 - **Desktop is unchanged:** the letterboxed 480 × 270 view with the control buttons below it.
 
 ## Scoring (`src/rules/scoring.ts`)
