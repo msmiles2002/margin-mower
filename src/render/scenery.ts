@@ -168,10 +168,11 @@ export function drawLawn(level: Level, mowed: ReadonlySet<number>, cam: number):
     if (kind === 'pad') rect(x, LAWN_TOP, COL, BAND, '#b08a5a');
     else if (kind === 'grass') drawGrassColumn(x, col, mowed.has(col));
     else if (kind === 'bed') drawGrassColumn(x, col, false);
-    else rect(x, LAWN_TOP, COL, BAND, '#4b9a37');
-    if (kind === 'walkway') {
-      poly([[x + 2, LAWN_TOP], [x + 22, LAWN_TOP], [x + 24, LAWN_BOTTOM], [x, LAWN_BOTTOM]], '#dcd8ce', null);
+    else {
+      // walkway: solid concrete with slab joints
+      rect(x, LAWN_TOP, COL, BAND, '#dcd8ce');
       rect(x, LAWN_TOP + 26, COL, 1, '#bdb8ad');
+      rect(x + COL - 1, LAWN_TOP, 1, BAND, '#bdb8ad');
     }
   }
 
