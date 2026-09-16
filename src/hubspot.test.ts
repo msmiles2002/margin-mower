@@ -3,7 +3,7 @@ import { buildSubmission, hubspotEnabled, isValidEmail, submissionUrl, submitLea
 import type { RoundSummary } from './rules/scoring';
 
 const target = { portalId: '123', formGuid: 'abc-def' };
-const summary: RoundSummary = { stars: 8, maxStars: 10, efficiency: 97, points: 2330, hoursSaved: 0.8, title: 'Pro' };
+const summary: RoundSummary = { stars: 8, maxStars: 10, efficiency: 97, points: 2330, hoursSaved: 0.8, budgetHours: 12, hoursUsed: 11.2, title: 'Pro' };
 const page = { pageUri: 'https://bomdata.io/margin-mower/', pageName: 'Margin Mower' };
 const lead = { firstName: 'Pat', company: 'GreenCo', email: 'pat@greenco.com' };
 

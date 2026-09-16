@@ -161,11 +161,20 @@ Obstacle hit boxes (width × height, sitting on the ground):
      - "No collisions ✓" with "Clean run bonus: +100", or "N collisions (+X hrs) ✗".
    - **Payoff:** a large headline ("0.4 labor hours saved" / "0.9 labor hours over budget" / "No labor hours saved" / "Right on budget"), then smaller "+1,140 pts".
    - **HEAD TO PROPERTY 2 →**, or **See my scorecard** after the last property.
-5. **Results:**
-   - "Weekly scorecard", the title, and stars out of 10.
-   - Summary line: `⭐ 8/10 · 97% efficiency · 2,330 pts · 0.8 hrs saved`.
+5. **Results** (wording in `shiftCardCopy`, `src/screens/cardCopy.ts`):
+   - "Weekly scorecard", the title, the **ON BUDGET. FULL QUALITY.** badge (when every property earned it), and stars out of 10.
+   - **LABOR PERFORMANCE:**
+     - Overall efficiency with 0–3 stars.
+     - Budget 12.0 hrs and the actual total.
+     - A net variance line: "0.8 hrs saved", "0.5 hrs over budget", "0.8 hrs under budget, 0.4 hrs saved", "… but work was skipped", or "Right on budget".
+   - **QUALITY:** combined grass cut %, weeds pulled and collisions, each with ✓ or ✗.
+   - **BY PROPERTY:** each property's short name, its efficiency and its stars out of 5.
+   - **Payoff:** the labor-hours headline, then smaller "+2,280 pts".
    - "Real crews using BomData improved labor efficiency 8–10%." This line never appears on the share image.
-   - **Book a demo** (always visible), **Share my score** with a status line, the optional HubSpot form, and **Play again**.
+   - The small logo, **Book a demo** (always visible), **Share my score** with a status line, the optional HubSpot form, and **Play again**.
+   - `RoundSummary` also carries `budgetHours` and `hoursUsed`, so the summary line and the share image can say "N hrs over budget" (net across the shift) instead of hours saved. Otherwise they show hours saved, "right on budget" or "no hours saved".
+   - Summary line: `⭐ 8/10 · 97% efficiency · 0.8 hrs saved · 2,330 pts`.
+   - Share image: "97% EFFICIENCY | 0.8 HRS SAVED", with a smaller "2,330 PTS" line under it.
 
 Focus moves to each panel's first button, so Enter or Space works on a keyboard. The coral focus outline shows only after a key is pressed (`body.using-keyboard`), and pointer input hides it again. Game keys are only handled while playing.
 

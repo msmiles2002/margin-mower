@@ -92,6 +92,8 @@ export interface RoundSummary {
   efficiency: number;
   points: number;
   hoursSaved: number;
+  budgetHours: number;
+  hoursUsed: number;
   title: Title;
 }
 
@@ -104,6 +106,8 @@ export function summarizeRound(scores: readonly PropertyScore[]): RoundSummary {
     efficiency: efficiencyPercent(sum((s) => s.hoursUsed), sum((s) => s.budgetHours)),
     points: sum((s) => s.points),
     hoursSaved: Math.round(sum((s) => s.hoursSaved) * 10) / 10,
+    budgetHours: Math.round(sum((s) => s.budgetHours) * 1e6) / 1e6,
+    hoursUsed: Math.round(sum((s) => s.hoursUsed) * 1e6) / 1e6,
     title: titleFor(stars),
   };
 }

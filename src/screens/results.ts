@@ -1,8 +1,9 @@
 import { isValidEmail, type LeadFields } from '../hubspot';
-import type { RoundSummary } from '../rules/scoring';
+import { MAX_STARS_PER_PROPERTY, type RoundSummary } from '../rules/scoring';
 import type { ShareOutcome } from '../share/share';
-import { starString, summaryLine } from '../share/text';
-import { button, el, link, logo, waitFor } from './dom';
+import { starString } from '../share/text';
+import { shiftCardCopy, type CheckLine, type NamedScore } from './cardCopy';
+import { button, el, link, logo, row, waitFor } from './dom';
 
 export interface ResultsActions {
   demoUrl: string;
@@ -64,7 +65,14 @@ function leadForm(onSubmitLead: ResultsActions['onSubmitLead']): HTMLFormElement
 }
 
 // Resolves when the player chooses Play again.
-export function showResults(overlay: HTMLElement, summary: RoundSummary, actions: ResultsActions): Promise<void> {
+export function showResults(
+  overlay: HTMLElement,
+  results: readonly NamedScore[],
+  summary: RoundSummary,
+  actions: ResultsActions,
+): Promise<void> {
+  const copy = shiftCardCopy(results, summary);
+  const check = (line: CheckLine) => row(line.text, line.ok ? '✓' : '✗', line.ok ? 'check' : 'cross');
   return waitFor<void>(overlay, (done) => {
     const shareStatus = el('p', { className: 'form-status' });
     const shareButton = button('Share my score', 'secondary', async () => {
@@ -75,8 +83,25 @@ export function showResults(overlay: HTMLElement, summary: RoundSummary, actions
     return [
       el('h2', { text: 'Weekly scorecard' }),
       el('h1', { text: summary.title }),
+      ...(copy.celebration === null ? [] : [el('div', { className: 'celebrate', text: copy.celebration })]),
       el('div', { className: 'stars', text: starString(summary.stars, summary.maxStars) }),
-      el('p', {}, [el('b', { text: summaryLine(summary) })]),
+      el('div', { className: 'section', text: 'LABOR PERFORMANCE' }),
+      row(el('b', { text: copy.efficiency }), starString(copy.efficiencyStars, 3)),
+      row('Budget', copy.budget, 'value'),
+      row('Actual', copy.actual, 'value'),
+      el('div', { className: `variance ${copy.variance.tone}`, text: copy.variance.text }),
+      el('div', { className: 'section', text: 'QUALITY' }),
+      check(copy.cut),
+      check(copy.weeds),
+      check(copy.collisions),
+      el('div', { className: 'section', text: 'BY PROPERTY' }),
+      ...copy.properties.map((p) =>
+        row(el('span', {}, [p.name, el('small', { text: ` · ${p.efficiency}` })]), starString(p.stars, MAX_STARS_PER_PROPERTY)),
+      ),
+      el('div', { className: 'payoff' }, [
+        el('div', { className: `headline ${copy.variance.tone}`, text: copy.headline }),
+        el('div', { className: 'points', text: copy.points }),
+      ]),
       el('p', { className: 'proof', text: 'Real crews using BomData improved labor efficiency 8–10%.' }),
       logo(actions.siteUrl, true),
       link('Book a demo', 'btn primary', actions.demoUrl),

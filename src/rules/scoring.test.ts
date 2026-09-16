@@ -129,6 +129,8 @@ describe('titles and rounds', () => {
       efficiency: 96, // 12 budgeted / 12.5 actual
       points: 1140 + (800 + 300 - 90 + CLEAN_RUN_BONUS),
       hoursSaved: 0.4,
+      budgetHours: 12,
+      hoursUsed: 12.5,
       title: 'Pro',
     });
   });

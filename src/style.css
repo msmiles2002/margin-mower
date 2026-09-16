@@ -178,6 +178,7 @@ body.using-keyboard #controls button:focus-visible { outline: 3px solid var(--co
 .payoff { margin: 14px 0 4px; }
 .payoff .headline { font-size: 17px; font-weight: 700; }
 .payoff .points { margin-top: 2px; font-size: 13px; color: #4d5b66; }
+.payoff + .proof { margin-top: 14px; }
 .section { margin: 14px 0 2px; text-align: left; font: 9px var(--pixel); color: #4d5b66; }
 .proof { font-size: 13px; color: #4d5b66; }
 .note { margin-top: 10px; }

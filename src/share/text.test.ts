@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { RoundSummary } from '../rules/scoring';
-import { formatHours, formatPoints, shareText, starString, summaryLine } from './text';
+import { formatHours, formatPoints, laborPhrase, shareText, starString, summaryLine } from './text';
 
-const summary: RoundSummary = { stars: 8, maxStars: 10, efficiency: 97, points: 2330, hoursSaved: 0.8, title: 'Pro' };
+const summary: RoundSummary = { stars: 8, maxStars: 10, efficiency: 97, points: 2330, hoursSaved: 0.8, budgetHours: 12, hoursUsed: 11.2, title: 'Pro' };
 
 describe('share text', () => {
   it('draws filled and empty stars', () => {
@@ -17,8 +17,15 @@ describe('share text', () => {
     expect(formatHours(6)).toBe('6.0');
   });
 
-  it('builds the scorecard summary line', () => {
-    expect(summaryLine(summary)).toBe('⭐ 8/10 · 97% efficiency · 2,330 pts · 0.8 hrs saved');
+  it('builds the scorecard summary line with points last', () => {
+    expect(summaryLine(summary)).toBe('⭐ 8/10 · 97% efficiency · 0.8 hrs saved · 2,330 pts');
+  });
+
+  it('describes the shift labor result', () => {
+    expect(laborPhrase(summary)).toBe('0.8 hrs saved');
+    expect(laborPhrase({ ...summary, hoursSaved: 0.4, hoursUsed: 12.5 })).toBe('0.5 hrs over budget');
+    expect(laborPhrase({ ...summary, hoursSaved: 0, hoursUsed: 11.6 })).toBe('no hours saved');
+    expect(laborPhrase({ ...summary, hoursSaved: 0, hoursUsed: 12 })).toBe('right on budget');
   });
 
   it('builds share text with the page link and no BomData stat', () => {

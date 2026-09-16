@@ -4,6 +4,7 @@
     /dev/card.html                perfect run
     /dev/card.html?case=over      over budget with collisions
     /dev/card.html?case=skipped   finished early but skipped grass and weeds
+    /dev/card.html?screen=results&case=over   final scorecard (North Valley perfect + the chosen case at Oak Creek)
 -->
 <html lang="en">
   <head>
@@ -22,6 +23,8 @@
       import { PROPERTIES } from '/src/rules/levels.ts';
       import { scoreProperty } from '/src/rules/scoring.ts';
       import { showPropertyCard } from '/src/screens/panels.ts';
+      import { showResults } from '/src/screens/results.ts';
+      import { summarizeRound } from '/src/rules/scoring.ts';
 
       const base = { hoursUsed: 5.6, budgetHours: 6, mowedColumns: 80, mowableColumns: 80, weedsPulled: 4, weedCount: 4, hits: 0 };
       const cases = {
@@ -29,9 +32,21 @@
         over: { ...base, hoursUsed: 6.9, hits: 3, weedsPulled: 3 },
         skipped: { ...base, mowedColumns: 70, weedsPulled: 2 },
       };
-      const input = cases[new URLSearchParams(location.search).get('case') ?? 'perfect'];
+      const q = new URLSearchParams(location.search);
+      const input = cases[q.get('case') ?? 'perfect'];
       await document.fonts.ready;
-      showPropertyCard(document.getElementById('overlay'), PROPERTIES[0], scoreProperty(input), 0.2, 0, 2);
+      const overlay = document.getElementById('overlay');
+      if (q.get('screen') === 'results') {
+        const results = [
+          { name: 'North Valley', score: scoreProperty(base) },
+          { name: 'Oak Creek', score: scoreProperty(input) },
+        ];
+        showResults(overlay, results, summarizeRound(results.map((r) => r.score)), {
+          demoUrl: '#', siteUrl: '#', showLeadForm: false, onShare: async () => 'cancelled', onSubmitLead: async () => false,
+        });
+      } else {
+        showPropertyCard(overlay, PROPERTIES[0], scoreProperty(input), 0.2, 0, 2);
+      }
     </script>
   </body>
 </html>

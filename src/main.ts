@@ -9,9 +9,10 @@ import { drawScene, updateHints, type SeenHints } from './render/scene';
 import { STALL_SECONDS } from './rules/constants';
 import { PROPERTIES } from './rules/levels';
 import { createRun, resultOf, type Run } from './rules/run';
-import { scoreProperty, summarizeRound, type PropertyScore, type RoundSummary } from './rules/scoring';
+import { scoreProperty, summarizeRound, type RoundSummary } from './rules/scoring';
 import { hideHud, showHud, updateHud, type HudElements } from './screens/hud';
 import { showFatal, showIntro, showPropertyCard, showTitle } from './screens/panels';
+import type { NamedScore } from './screens/cardCopy';
 import { showResults } from './screens/results';
 import { renderCardBlob } from './share/card';
 import { downloadBlob, shareResult } from './share/share';
@@ -53,10 +54,10 @@ const controls = setupControls(
   rng,
 );
 const hubspotTarget = { portalId: config.hubspotPortalId, formGuid: config.hubspotFormGuid };
-const SAMPLE_SUMMARY: RoundSummary = { stars: 8, maxStars: 10, efficiency: 97, points: 2330, hoursSaved: 0.8, title: 'Pro' };
+const SAMPLE_SUMMARY: RoundSummary = { stars: 8, maxStars: 10, efficiency: 97, points: 2330, hoursSaved: 0.8, budgetHours: 12, hoursUsed: 11.2, title: 'Pro' };
 
-async function playRound(): Promise<RoundSummary> {
-  const scores: PropertyScore[] = [];
+async function playRound(): Promise<NamedScore[]> {
+  const results: NamedScore[] = [];
   for (const [index, property] of PROPERTIES.entries()) {
     const run = createRun(property);
     shown = run;
@@ -74,10 +75,10 @@ async function playRound(): Promise<RoundSummary> {
     hideHud(hud);
 
     const score = scoreProperty(resultOf(run));
-    scores.push(score);
+    results.push({ name: property.shortName, score });
     await showPropertyCard(overlay, property, score, STALL_SECONDS * run.hoursPerSecond, index, PROPERTIES.length);
   }
-  return summarizeRound(scores);
+  return results;
 }
 
 async function main(): Promise<void> {
@@ -91,8 +92,9 @@ async function main(): Promise<void> {
   await showTitle(overlay);
   previewHints = true;
   for (;;) {
-    const summary = await playRound();
-    await showResults(overlay, summary, {
+    const results = await playRound();
+    const summary = summarizeRound(results.map((r) => r.score));
+    await showResults(overlay, results, summary, {
       demoUrl: withUtm(config.demoUrl),
       siteUrl: withUtm(config.siteUrl),
       showLeadForm: hubspotEnabled(hubspotTarget),

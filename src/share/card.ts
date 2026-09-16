@@ -1,6 +1,6 @@
 import logoUrl from '../assets/bomdata-logo.png';
 import type { RoundSummary } from '../rules/scoring';
-import { formatHours, formatPoints, starString } from './text';
+import { formatPoints, laborPhrase, starString } from './text';
 
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 627;
@@ -40,8 +40,9 @@ function drawCard(ctx: CanvasRenderingContext2D, s: RoundSummary, logo: HTMLImag
 
   ctx.fillStyle = INK;
   ctx.font = '22px "Press Start 2P"';
-  ctx.fillText(`${s.efficiency}% EFFICIENCY | ${formatPoints(s.points)} PTS`, CENTER, 385);
-  ctx.fillText(`${formatHours(s.hoursSaved)} HRS SAVED`, CENTER, 425);
+  ctx.fillText(`${s.efficiency}% EFFICIENCY | ${laborPhrase(s).toUpperCase()}`, CENTER, 385);
+  ctx.font = '18px "Press Start 2P"';
+  ctx.fillText(`${formatPoints(s.points)} PTS`, CENTER, 425);
 
   ctx.font = 'bold 32px "DM Sans", sans-serif';
   ctx.fillText('Can you mow on budget?', CENTER, 480);
