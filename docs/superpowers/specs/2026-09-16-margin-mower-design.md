@@ -1,195 +1,241 @@
 # Margin Mower — Design
 
 **Tagline:** Can you mow on budget?
-**Goal:** A cute, pixel-art browser game posted on LinkedIn that gets commercial landscapers (Aspire users) to bomdata.io, captures leads in HubSpot, and drives demo bookings.
+**Goal:** A cartoon browser game posted on LinkedIn that gets commercial landscapers (Aspire users) to bomdata.io, captures leads in HubSpot and drives demo bookings.
 **Page:** `bomdata.io/margin-mower` (WordPress), embedding the game hosted on GitHub Pages.
+**Reference implementation:** `prototype/margin-mower-runner.html` and `prototype/sprites.js` (style B). Both were approved through playtesting. Where this spec and the prototype disagree, the spec wins. Otherwise the prototype's look and feel is the target.
 
 ## Why this game
 
-It mirrors what landscape managers actually do. BomData shows which properties are over or under hours so managers can plan the week:
+It mirrors what landscape managers actually deal with. BomData shows which properties run over or under hours so managers can plan the week.
 
 | Real problem | In the game |
 |---|---|
-| Over hours: crew needs coaching on sequencing and equipment use | Messy paths and re-mowing tiles burn the hours budget |
-| Way under hours: crew is skipping weeding or services | The site walk flags missed turf and weeds; skipped work earns no "hours saved" |
-| Wrong crew for a complex property | Crew pick before each property; the wrong crew goes over budget or can't reach tight areas |
-| BomData gives clarity before the week starts | "BomData heads-up" tip before each property |
+| Over hours (crew slowed by obstacles, poor sequencing) | Bumping an obstacle stalls the crew while the clock runs |
+| Under hours from skipped work | Hopping over grass leaves it uncut; unpulled weeds are flagged |
+| Wrong crew for the site | BomData assigns the crew: a ride-on for open turf, a push crew for tight, treed sites |
+| BomData gives clarity before the week starts | A "BomData heads-up" card before each property |
 
 ## Gameplay
 
-A round is three properties, about 30 seconds each, roughly 2 minutes in total including the screens between properties.
+It's a side-scrolling runner. The crew drives right automatically, and the camera follows. A round is two properties, each ending at a checkered finish flag. There's no time cap: every run reaches the finish.
 
-1. **Office Park:** mostly open turf, few beds. The ride-on crew is the right pick.
-2. **HOA:** many beds, more weeds.
-3. **Hospital Campus:** many narrow strips. The push crew is the right pick.
-
-### Board
-
-- Portrait grid, 12 columns × 16 rows of 16px tiles. The canvas is drawn at a whole-number multiple of device pixels, so the art stays crisp while filling the screen.
-- Tile types:
-  - **turf:** must be mowed
-  - **narrow turf:** must be mowed; the ride-on crew can't enter it
-  - **bed:** can't be mowed; weeds can appear here
-  - **obstacle:** trees and buildings; can't be entered
-  - **path:** can be driven on; nothing to mow
-- Mowed turf shows alternating stripes.
-- Each property is a hand-built layout stored as data.
+| # | Property | Crew | Obstacles | Weeds | Backdrop |
+|---|---|---|---|---|---|
+| 1 | North Valley Office Park | Ride-on (can't duck) | Hop: sprinkler, rock, picnic table, boy walking a dog. No trees. | 4 | Office buildings, hedges |
+| 2 | Oak Creek HOA | Push crew | Hop: rock, shrub, neighbor with a cane. Duck: low branches. | 7 | Houses, mailboxes, trees |
 
 ### Controls
 
-- **Drag:** the mower moves one tile at a time toward the tile under the finger, in 4 directions, taking the greedy axis first, at the crew's speed. It stops when blocked.
-- **Tap a weed (finger lifted):** pulls the weed. The mower pauses for 1 second.
-- **Done button:** ends the property early.
-- The canvas sets `touch-action: none` so dragging never scrolls the page.
-
-### Crews (chosen before each property)
-
-| Crew | Speed | Limitation |
+| Action | Keyboard | Touch |
 |---|---|---|
-| Ride-on | 12 tiles/sec | Can't enter narrow turf |
-| Push | 6 tiles/sec | None |
+| **Hop** | ↑, Space, W | Tap the game, or the **⬆ HOP** button |
+| **Duck** (hold) | ↓, S | Hold the **⬇ DUCK · PULL** button |
+| **Pull weed** | Press ↓ or S while passing a weed | Press **⬇ DUCK · PULL** while passing a weed |
 
-Speeds, budgets and weed rates are starting values to tune during playtesting.
+- Hop only works on the ground and not while stalled.
+- Duck only works for the push crew.
+- Pulling works for both crews. It pulls the nearest unpulled weed within reach and never stalls the crew.
 
-### Clock
+### World (logical units; the canvas is 480 × 270)
 
-- Each property has a budget of 6.0 displayed hours = 30 real seconds (1 second = 0.2 hr).
-- Once the budget is used up, the clock turns red and counts overtime.
-- The property ends automatically at +50% of budget (9.0 hrs), or when the player taps Done.
+- **Level format:** a string where each character is one 24-unit column.
+  - `.` grass
+  - `_` dirt pad
+  - `=` walkway
+  - `b` bed
+  - `w` bed with a weed
+  - `r` rock
+  - `s` sprinkler
+  - `c` picnic table
+  - `h` shrub
+  - `L` neighbor with a cane
+  - `D` boy walking a dog
+  - `B` low branch over grass
+- **Ground line:** y = 196. The lawn strip runs from y 160 to 216, with a sidewalk above and a street below.
+- **Mowable columns:** `.` and `B`. A column is mowed when the crew is on the ground while its center is over that column.
+- **Hop obstacles** sit on dirt pads. The whole column from the sidewalk to the curb is dirt, with no grass.
+- **Consecutive `B` columns** form a single branch: one obstacle, one possible bump.
+- **Levels (exact):**
+  - North Valley: `..........__s__........__r__......bwbb......__c__.........__s__....__D__........bbwb.....__s__..__r__.........__c__......bwbbwb.......__r__..........`
+  - Oak Creek: `........_r_......BB.....bwbwb...._h_....BB.._L_.....bwbbw...BBB...._h_..bwb...._h_...BB..._r_....bbwbwb....BB.._h_........`
 
-### Weeds
+### Physics and tuning
 
-- Weeds spawn on random bed tiles over time. The rate is set per property; the HOA has the highest.
-- Weeds still unpulled at the end count against the player.
-
-### Site walk
-
-- A 2–3 second animation: a manager sprite walks the property and drops flags on unmowed turf and unpulled weeds.
-- Then a mini scorecard: hours used / budget, and the stars earned.
-
-### BomData heads-up
-
-Shown before each property's crew pick, in a BomData-branded card. Each tip is one line naming the property's key risk and hinting at the right crew. Examples:
-- "Hospital Campus: tight strips; push crew recommended."
-- "HOA: beds get weedy; save time for them."
-
-## Scoring
-
-### Stars (per property, maximum 3; maximum 9 per round)
-
-- ⭐ **On budget:** finished with hours used ≤ budget.
-- ⭐ **Clean cut:** at least 95% of mowable tiles are mowed.
-- ⭐ **No weeds:** no weeds left unpulled when the property ends.
-
-### Points
-
-- **+10** per tile mowed (first time only).
-- **+50** per weed pulled.
-- **+10** per 0.1 budget hour left over. **Only awarded if Clean cut was earned.**
-- **−10** per 0.1 hour of overtime.
-
-### Hours saved (round total)
-
-Sum of (budget − hours used) over the properties that finished on budget **and** earned Clean cut.
-
-### Final title (by total stars)
-
-| Stars | Title |
+| Constant | Value |
 |---|---|
-| 0–3 | Rookie |
-| 4–6 | Crew Lead |
-| 7–8 | Pro |
-| 9 | Margin Master |
+| Gravity | 930 units/s² |
+| Hop launch speed | 300 units/s (about 0.65 s in the air, about 48 units high) |
+| Ride-on speed | 165 units/s; hit box height 44 |
+| Push crew speed | 128 units/s; hit box height 43 standing, 34 ducking |
+| Crew hit box width | 20 (±10 around the crew's position) |
+| Weed reach | ±33 |
+| Bump stall | 1 s. The crew stops, the clock keeps running, and "+0.Xh" floats up. |
+| Start / end | Starts at position 12; ends at level length + 36 |
+| Frame step cap | 0.05 s |
+
+Obstacle hit boxes (width × height, sitting on the ground):
+
+| Obstacle | Width × height |
+|---|---|
+| Rock | 15 × 12 |
+| Sprinkler | 9 × 9 |
+| Picnic table | 28 × 17 |
+| Shrub | 21 × 18 |
+| Neighbor with a cane | 15 × 27 |
+| Boy walking a dog | 30 × 26 |
+
+- **Branch hit box:** 33 wide per column, spanning the whole group, from y 96 to y 158. A standing push crew hits it; a ducking crew clears it.
+- **Hitting the neighbor** also shows "Sorry, ma'am!"
+- **Budget:** 6.0 hours per property. Budget seconds = level length ÷ crew speed + 1.5, and displayed hours = elapsed seconds × (6 ÷ budget seconds). A perfect run finishes about 0.4 hours under budget.
+
+### Feedback
+
+- **First-time hint bubbles** ("⬆ HOP", "⬇ DUCK", "⬇ PULL") bob above the first obstacle of each kind and the first weed. They stop showing once the crew passes them.
+- **Grass clippings** fly while mowing, and bumps shake the screen and scatter debris.
+- **Weed feedback:** "+50" when a weed is pulled. A weed that passes out of reach shows "missed" and a red "!".
+- **HUD:** short property name · crew, the clock `x.x/6.0h` (red when over budget), and `NN% cut`. A yellow progress bar runs across the top of the canvas.
+
+## Scoring (per property, maximum 5 stars; round maximum 10)
+
+- **Efficiency %** = round(min(1, budget ÷ hours used) × 100).
+  - Stars: above 95 → ★★★, above 80 → ★★, above 70 → ★, otherwise none.
+- **Quality:**
+  - ★ for a 100% cut (floor of mowed ÷ mowable × 100 equals 100).
+  - ★ for pulling every weed.
+- **Points:**
+  - +10 per mowed column.
+  - +50 per pulled weed.
+  - When on budget and the cut is 100%: +10 per whole 0.1 hour under budget.
+  - When over budget: −10 per whole 0.1 hour over.
+- **Hours saved:** budget − hours used, counted only when on budget and both quality stars were earned.
+- **Round totals:**
+  - Stars and points are summed across the properties.
+  - Hours saved is summed and rounded to 0.1.
+  - Overall efficiency = round(min(1, total budget ÷ total hours used) × 100).
+- **Titles by total stars:** 10 Margin Master, 8–9 Pro, 5–7 Crew Lead, 0–4 Rookie.
+- **Minimum star:** a player who never hops always cuts 100%, so every finished property earns at least one star.
 
 ## Screens
 
-1. **Title:** "Margin Mower: Can you mow on budget?" with a Start button. Nothing to fill in before play.
-2. **Heads-up and crew pick:** shows a preview of the property, the budget, the BomData tip, and the two crew buttons.
-3. **Mowing:** top bar shows property name, the hours clock, coverage %, and the Done button.
-4. **Site walk and mini scorecard:** then continue to the next property.
-5. **Results:** styled like a BomData weekly scorecard:
-   - `⭐ 7/9 · 4,820 pts · 1.4 hrs saved · Pro`
-   - One line that is never included in the share image: "Real crews using BomData improved labor efficiency 8–10%."
-   - **Share:** on phones, the native share sheet (`navigator.share` with the PNG). On desktop, download the PNG and open a LinkedIn share link for the page URL.
-   - **Optional form:** first name, company, email, sent to HubSpot.
-   - **Book a demo** (always visible) and **Play again**.
+1. **Title:** "Margin Mower", "Can you mow on budget?", a one-line how-to, **Start shift**, and "A game by BomData".
+2. **Property intro:**
+   - "Property N of 2" and the property name.
+   - A BomData heads-up card:
+     - North Valley: "Wide open turf, no trees. BomData matched a **ride-on crew** to this site so you can move fast."
+     - Oak Creek: "Low branches, weedy beds, and neighbors out for a walk. BomData matched a **push crew** that can duck under trees and get into the beds."
+   - Controls for that crew, plus the line "Only hop when you need to: grass you fly over doesn't get cut."
+   - "Budget: 6.0 hrs" and a **Go!** button.
+   - The level is drawn behind the panel.
+3. **Playing:** HUD, canvas and the two control buttons.
+4. **Property card:**
+   - Property name and stars out of 5.
+   - **EFFICIENCY:** % (hours used of budget) and 0–3 stars.
+   - **QUALITY:** "Grass cut: N%" with a star, and "Weeds pulled: x/y" with a star.
+   - A note on bumps ("2 bumps cost you 0.5 hrs." / "No bumps. Smooth driving.") and, when the cut wasn't 100%, "Hopping over grass left it uncut."
+   - Points, and **Next property** / **See my scorecard**.
+5. **Results:**
+   - "Weekly scorecard", the title, and stars out of 10.
+   - Summary line: `⭐ 8/10 · 97% efficiency · 2,330 pts · 0.8 hrs saved`.
+   - "Real crews using BomData improved labor efficiency 8–10%." This line never appears on the share image.
+   - **Book a demo** (always visible), **Share my score** with a status line, the optional HubSpot form, and **Play again**.
+
+Focus moves to each panel's first button, so Enter or Space works on a keyboard. Game keys are only handled while playing.
+
+## Visual style (style B, "bold cartoon")
+
+- **Scene:** a Paperboy-like 3/4 lawn strip with a sidewalk behind and a street with parked cars in front.
+  - The backdrop scrolls at 0.85× speed: 3/4-view glass office buildings with "N.VALLEY" signs and hedges, or 3/4-view houses with mailboxes and trees behind.
+  - Clouds scroll at 0.1×.
+- **Art style:** 2-unit dark outlines (`#1b1b24`), big heads with caps and faces, and highlights.
+- **Sprites:** all art is drawn in code with no image files. It must match `prototype/sprites.js` style B:
+  - ride-on crew
+  - push crew (walking and ducking)
+  - rock
+  - sprinkler with water arcs
+  - picnic table with basket
+  - berry shrub
+  - neighbor with a cane
+  - boy walking a dog
+  - dandelion weed (plus the missed marker)
+  - low branch with a leaf-cluster tree crown
+- **Lawn:**
+  - Unmowed grass is dark with tufts; mowed columns alternate between two light-green stripes.
+  - Beds are rounded mulch patches with stone edging and small shrubs.
+  - Pads are full-height dirt with pebbles.
+- **Scaling:** the canvas fills the space available (up to 2.2×) at device-pixel resolution, so edges stay smooth rather than pixelated.
+- **Fonts:** Press Start 2P for headings and the HUD; DM Sans for body text.
+- **Brand colors:** `#127DB9` blue and `#7EBEC5` teal.
 
 ## Build
 
-### Repo and stack
+### Stack
 
-- New repo `margin-mower` on the user's personal GitHub.
-- TypeScript, Vite, and an HTML canvas. No game engine. Tests use Vitest; packages are managed with yarn.
+- A new repo, `margin-mower`, on the user's personal GitHub.
+- TypeScript, Vite and an HTML canvas. No game engine and no runtime dependencies.
+- Tests use Vitest, and packages are managed with yarn.
+- Vite `base: './'`.
 
 ### Code layout
 
-- `src/rules/`: pure game logic with no DOM access.
-  - `grid.ts`: tiles, movement, coverage
+- `src/rules/` (pure, no DOM, unit-tested):
+  - `constants.ts`
   - `crews.ts`
-  - `weeds.ts`
-  - `scoring.ts`: stars, points, hours saved, title
-  - `properties.ts`: the three layouts, budgets, weed rates, tips
-- `src/game/`: game loop and input. Turns pointer events into mower movement and weed taps, and advances the rules on each tick.
-- `src/render/`: canvas drawing and sprites.
-- `src/screens/`: title, crew pick, mowing HUD, site walk, results. Built as DOM overlays on top of the canvas.
-- `src/share/`: draws the result card to a PNG; share and download.
-- `src/hubspot.ts`: form submission.
-- `src/config.ts`:
-  - HubSpot portal ID and form GUID
-  - demo URL
-  - page URL
+  - `levels.ts` (level strings, obstacle table, parsing)
+  - `run.ts` (run state, hop / duck / pull, tick)
+  - `scoring.ts`
+- `src/render/` (drawing):
+  - `canvas.ts` (fit and scale)
+  - `draw.ts` (helpers)
+  - `sprites.ts` (style B only)
+  - `scenery.ts` (sky, clouds, backdrops, sidewalk and street, lawn)
+  - `scene.ts` (the full frame, including hints, floats, particles, flag and progress bar)
+- `src/game/`:
+  - `input.ts` (keys, buttons, canvas tap)
+  - `loop.ts` (the animation loop for one property)
+- `src/screens/`: title, intro, HUD, property card, results, fatal error.
+- `src/share/`: summary text, the 1200×627 score card, share or download.
+- `src/hubspot.ts`, `src/config.ts`, `src/main.ts`.
 
-### Art
+Particles and floating text are visual effects. They stay in `run.ts` state so the loop stays simple, but their random values come from an injected random-number function so tests are deterministic.
 
-- Pixel sprites for mower, crews, weeds, trees, buildings, beds, manager and flags.
-- Sources: CC0 packs (for example Kenney) or simple sprites made for this game.
-- Brand colors are taken from bomdata.io.
-- Sound: none in v1.
+### Hosting, sharing and HubSpot (unchanged from the approved plan)
 
-### Hosting
-
-- A GitHub Actions workflow builds the game and deploys it to GitHub Pages on every push to `main`.
-- The WordPress page `bomdata.io/margin-mower` uses:
-  - a full-width template
-  - a Custom HTML block containing an iframe of the Pages URL (full width, `height: 100vh`, `allow="web-share"`)
-  - a social preview image and title set for LinkedIn.
-- Note: sharing from inside the iframe requires the `web-share` permission. If the phone's share sheet is still blocked, the download fallback is used.
-
-### HubSpot
-
-- A new form with fields `firstname`, `company`, `email`, plus hidden custom contact properties `margin_mower_score` and `margin_mower_stars`.
-- Submitted from the browser to the public Forms API: `api.hsforms.com/submissions/v3/integration/submit/{portalId}/{formGuid}`.
-- The submission includes `pageUri` and `pageName`.
-- On failure, show "Couldn't save, try again". The game never blocks on this.
-
-### Demo link
-
-The bomdata.io demo page with `utm_source=linkedin&utm_medium=game&utm_campaign=margin-mower`.
-
-### Asset loading errors
-
-If sprites fail to load, show a plain "Reload" message rather than a blank canvas.
+- **Hosting:** GitHub Actions tests, builds and deploys to GitHub Pages on every push to `main`.
+- **WordPress:** a full-width page with a Custom HTML block containing an iframe (`allow="web-share"`, `height: 100vh`), plus a social preview image.
+- **Share:**
+  - Phones use the native share sheet with a PNG.
+  - Desktop downloads the PNG and opens a LinkedIn share link for `https://bomdata.io/margin-mower/`.
+  - `?og` downloads a sample card for the social preview image.
+  - Share text: "I scored 8/10 stars with 97% efficiency in Margin Mower. Can you mow on budget? https://bomdata.io/margin-mower/"
+- **HubSpot:**
+  - An optional form (first name, company, email) sent to the public Forms API, with hidden `margin_mower_score` and `margin_mower_stars` fields.
+  - It's hidden until the portal ID and form GUID are set in `config.ts`.
+  - If sending fails, the form shows "Couldn't save, try again".
+- **Demo link:** `https://bomdata.io/contact/?utm_source=linkedin&utm_medium=game&utm_campaign=margin-mower`.
+- **Errors:** any uncaught error shows a "Something went wrong / Reload" panel.
 
 ## Testing
 
-- **Unit tests (Vitest)** for `src/rules/`:
-  - movement blocking, including ride-on vs narrow turf
-  - coverage counting with no double counting
-  - clock and overtime auto-end
-  - each star rule
-  - points, including the Clean cut gate on the leftover-hours bonus
-  - hours saved and title thresholds
-  - each property layout is valid: every mowable tile can be reached by the push crew
-- **Manual pass** on iPhone Safari, Android Chrome and desktop Chrome/Safari, both on the standalone Pages URL and inside the WordPress page. Check:
-  - dragging doesn't scroll the page
-  - share or download works
-  - the HubSpot submission arrives
-  - the demo link carries the UTM tags
+- **Unit tests** for:
+  - level parsing, including branch grouping and pad handling
+  - the hop arc, and that hop and duck are refused when they shouldn't work
+  - pull reach and missed weeds
+  - bumps (stall, one hit per obstacle, ducking clears a branch, standing hits it)
+  - mowing only while on the ground
+  - the end condition
+  - scoring: efficiency star thresholds, quality stars, points, hours saved, titles and round totals
+- **Level tests using a scripted player:**
+  - For each property there is a timing window where a scripted player finishes with no bumps and 5/5 stars.
+  - A player who does nothing still finishes, with at least one star.
+- **Manual pass** on iPhone Safari, Android Chrome and desktop Chrome/Safari, both standalone and inside the WordPress page: controls, share, HubSpot submission, demo link and UTM tags.
 
 ## Out of scope (v1)
 
 - Leaderboard
 - Sound
-- More than 3 properties or randomized layouts
-- Extra analytics beyond HubSpot page tracking
-- Accounts or saved progress
+- Diagonal (true Paperboy) scrolling
+- Styles A and C
+- More than two properties
+- Analytics beyond HubSpot page tracking
+- Accounts
