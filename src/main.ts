@@ -3,7 +3,7 @@ import { config, withUtm } from './config';
 import { setupControls } from './game/input';
 import { playProperty } from './game/loop';
 import { buildSubmission, hubspotEnabled, submitLead } from './hubspot';
-import { isMobileLayout, setupCanvas } from './render/canvas';
+import { hasTouchScreen, isMobileLayout, setupCanvas } from './render/canvas';
 import { useContext } from './render/draw';
 import { drawScene, updateHints, type SeenHints } from './render/scene';
 import { STALL_SECONDS } from './rules/constants';
@@ -50,7 +50,7 @@ const redraw = () => {
 // On phones the game fills the space above the control pad while playing, and the space above the
 // bottom sheet (60% of the screen) while a panel is open.
 const reservedBelowGame = () => {
-  if (!isMobileLayout(window.innerWidth, window.innerHeight)) return 0;
+  if (!isMobileLayout(window.innerWidth, window.innerHeight, hasTouchScreen())) return 0;
   return playing ? controlsPad.getBoundingClientRect().height : Math.round(window.innerHeight * 0.6);
 };
 const game = setupCanvas(canvas, reservedBelowGame, redraw);

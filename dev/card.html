@@ -37,7 +37,7 @@
       const q = new URLSearchParams(location.search);
       const input = cases[q.get('case') ?? 'perfect'];
       await document.fonts.ready;
-      document.body.classList.toggle('mobile', isMobileLayout(innerWidth, innerHeight));
+      document.body.classList.toggle('mobile', isMobileLayout(innerWidth, innerHeight, matchMedia('(pointer: coarse)').matches));
       const overlay = document.getElementById('overlay');
       if (q.get('screen') === 'results') {
         const scores = [scoreProperty({ ...base, hoursUsed: 5.63 }), scoreProperty(input)];

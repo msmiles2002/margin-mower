@@ -49,8 +49,11 @@ export function viewFor(cssWidth: number, cssHeight: number, mobile: boolean): V
   return { width, height, top: WORLD_HEIGHT + extraBelow - height, mowerX: Math.max(60, Math.round(width * 0.23)) };
 }
 
-export const isMobileLayout = (windowWidth: number, windowHeight: number): boolean =>
-  windowHeight > windowWidth || windowWidth < 700;
+// Phones and tablets held upright get the phone layout; a tall desktop browser window does not.
+export const isMobileLayout = (windowWidth: number, windowHeight: number, touchScreen: boolean): boolean =>
+  windowWidth < 700 || (touchScreen && windowHeight > windowWidth);
+
+export const hasTouchScreen = (): boolean => window.matchMedia('(pointer: coarse)').matches;
 
 export interface CanvasLayout extends CanvasFit {
   mobile: boolean;
@@ -58,8 +61,14 @@ export interface CanvasLayout extends CanvasFit {
 }
 
 // `controlsHeight` is the space the control pad takes below the game (0 when it's hidden).
-export function canvasLayout(windowWidth: number, windowHeight: number, controlsHeight: number, devicePixelRatio: number): CanvasLayout {
-  const mobile = isMobileLayout(windowWidth, windowHeight);
+export function canvasLayout(
+  windowWidth: number,
+  windowHeight: number,
+  controlsHeight: number,
+  devicePixelRatio: number,
+  touchScreen: boolean,
+): CanvasLayout {
+  const mobile = isMobileLayout(windowWidth, windowHeight, touchScreen);
   if (!mobile) {
     return { mobile, view: DESKTOP_VIEW, ...canvasFit(windowWidth - SIDE_GUTTER, windowHeight - DESKTOP_RESERVED_HEIGHT, devicePixelRatio) };
   }
@@ -79,6 +88,12 @@ export function canvasLayout(windowWidth: number, windowHeight: number, controls
   };
 }
 
+function desktopBelowGame(): number {
+  const pad = document.getElementById('controls');
+  if (pad === null) return 0;
+  return pad.getBoundingClientRect().height + parseFloat(getComputedStyle(pad).marginTop || '0');
+}
+
 export interface GameCanvas {
   ctx: CanvasRenderingContext2D;
   view(): View;
@@ -92,7 +107,7 @@ export function setupCanvas(canvas: HTMLCanvasElement, controlsHeight: () => num
   if (ctx === null) throw new Error('Canvas 2D is not supported');
   let current: View = DESKTOP_VIEW;
   const refit = () => {
-    const layout = canvasLayout(window.innerWidth, window.innerHeight, controlsHeight(), window.devicePixelRatio || 1);
+    const layout = canvasLayout(window.innerWidth, window.innerHeight, controlsHeight(), window.devicePixelRatio || 1, hasTouchScreen());
     document.body.classList.toggle('mobile', layout.mobile);
     canvas.style.width = `${layout.cssWidth}px`;
     canvas.style.height = `${layout.cssHeight}px`;
@@ -100,6 +115,8 @@ export function setupCanvas(canvas: HTMLCanvasElement, controlsHeight: () => num
     canvas.height = layout.pixelHeight;
     ctx.setTransform(layout.scale, 0, 0, layout.scale, 0, -layout.view.top * layout.scale);
     current = layout.view;
+    // Space the control pad takes under the game on desktop, so panels can center on the game itself.
+    document.documentElement.style.setProperty('--below-game', layout.mobile ? '0px' : `${desktopBelowGame()}px`);
     onResize();
   };
   refit();

@@ -107,7 +107,7 @@ Obstacle hit boxes (width × height, sitting on the ground):
   - The bar is green while more than 25% of the budget remains, then yellow; once over budget it reads "OVER BUDGET +x.x hrs" with a full coral bar.
   - There is no separate HTML top bar.
 
-### Phone layout (`body.mobile`: any portrait screen, or narrower than 700px)
+### Phone layout (`body.mobile`: narrower than 700px, or a touch screen held upright; tall desktop windows keep the desktop layout)
 
 - **Taller, zoomed-in view** (`viewFor` in `src/render/canvas.ts`):
   - The camera shows 300 world units across (sprites about 1.7× bigger than the 480-unit desktop view), and the crew sits about 23% from the left.
@@ -116,7 +116,7 @@ Obstacle hit boxes (width × height, sitting on the ground):
 - **While playing:** the game fills the top of the screen, and the bottom 34% is a thumb pad with two large rounded buttons, "⬆ HOP (tap · flick up · ↑)" and "⬇ DUCK · PULL (tap · flick down · ↓)". Flicks still work anywhere on the page.
 - **Panels are bottom sheets:** full width, rounded top corners, at least 60% of the screen tall, content centered, and the main button at the bottom in thumb reach. The game is drawn in the space above the sheet, so the scene stays visible behind the title, intro and cards.
 - **Compact panels:** on phones, cards use tighter type and spacing, and the QUALITY results become wrapping chips ("✓ Grass cut: 100%", "✗ Weeds pulled: 3/4", "✗ 1 collision"). Every panel, including the worst-case property card and scorecard, fits a 375 × 553 screen (iPhone SE with Safari's toolbars) without scrolling.
-- **Desktop is unchanged:** the letterboxed 480 × 270 view with the control buttons below it.
+- **Desktop:** the letterboxed 480 × 270 view, with the control buttons below it, centered in the window. The buttons keep their space while hidden, so nothing moves when play starts. Panels center on the game (the overlay's bottom padding matches the button area, `--below-game`), so the title always sits inside the game frame, even in very tall windows.
 
 ## Scoring (`src/rules/scoring.ts`)
 

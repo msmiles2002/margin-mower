@@ -28,17 +28,17 @@ body {
 #app {
   position: relative;
   height: 100%;
-  padding-top: 16px;
+  padding: 16px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 body.playing { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 
 #board {
   -webkit-touch-callout: none;
-  margin-top: 8px;
   border: 3px solid #111;
   touch-action: none;
   user-select: none;
@@ -288,3 +288,9 @@ body.mobile .btn { margin-top: 8px; padding: 12px; }
 body.mobile .panel > .btn:last-child { padding: 15px 12px; }
 body.mobile .tip,
 body.mobile .keys { margin: 8px 0; padding: 8px 10px; font-size: 14px; }
+
+/* ---------------------------------------------------------------- desktop */
+/* The game and its control buttons sit centered in the window. The buttons keep their space while
+   hidden, so nothing jumps when play starts, and panels center on the game rather than the window. */
+body:not(.mobile) #controls[hidden] { display: flex !important; visibility: hidden; }
+body:not(.mobile) #overlay { padding-bottom: calc(16px + var(--below-game, 0px)); }
