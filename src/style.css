@@ -203,7 +203,7 @@ form.lead input { display: block; width: 100%; margin-top: 8px; padding: 10px; f
 
 /* ---------------------------------------------------------------- phones (body.mobile) */
 /* The game fills the top of the screen; while playing, the bottom becomes a big thumb pad. */
-body.mobile #app { padding-top: 0; }
+body.mobile #app { padding: 0; justify-content: flex-start; }
 body.mobile #board { margin-top: 0; border: 0; }
 body.mobile #controls {
   flex: none;
