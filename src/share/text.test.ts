@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { RoundSummary } from '../rules/scoring';
-import { counted, formatHours, formatPoints, laborPhrase, outcomeLine, shareText, starString, summaryLine } from './text';
+import { counted, displayUrl, formatHours, formatPoints, laborPhrase, outcomeLine, shareText, starString, summaryLine } from './text';
 
 const summary: RoundSummary = {
   stars: 4,
@@ -42,9 +42,15 @@ describe('share text', () => {
     expect(summaryLine(summary)).toBe('Route Pro · 4/5 stars · 103% efficiency · 0.3 hrs saved · 2,080 pts');
     const text = shareText(summary, 'https://bomdata.io/margin-mower/');
     expect(text).toBe(
-      'I finished as a Route Pro in Margin Mower: 103% efficiency, 0.3 hrs saved. Can you mow on budget? https://bomdata.io/margin-mower/',
+      'I hit Route Pro in Margin Mower 🌱\n103% efficiency · 0.3 hrs saved\n\nThink you can beat it?\nbomdata.io/margin-mower',
     );
     expect(text).not.toContain('8–10%');
+  });
+});
+
+describe('displayUrl', () => {
+  it('drops the scheme and trailing slash', () => {
+    expect(displayUrl('https://bomdata.io/margin-mower/')).toBe('bomdata.io/margin-mower');
   });
 });
 

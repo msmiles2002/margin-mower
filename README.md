@@ -70,7 +70,7 @@ check both `https://msmiles2002.github.io/margin-mower/` and `https://bomdata.io
 - [ ] On a phone held upright, the game fills the top of the screen, the thumb pad fills the bottom, and panels open as bottom sheets
 - [ ] Pressing the game controls never scrolls the page
 - [ ] Both properties, their property cards and the scorecard appear; Play again restarts
-- [ ] Share opens the phone share sheet (or downloads the image and opens LinkedIn on desktop)
+- [ ] Share opens the phone share sheet (or, on desktop, downloads the image, copies the caption and shows an Open LinkedIn button)
 - [ ] A lead form submission appears in HubSpot with score and stars
 - [ ] See how BomData works opens `bomdata.io` with `utm_campaign=margin-mower`
 - [ ] LinkedIn Post Inspector shows the preview image and title

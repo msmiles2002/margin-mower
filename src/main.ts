@@ -141,10 +141,14 @@ async function main(): Promise<void> {
   previewHints = true;
   for (;;) {
     const summary = await playRound();
+    // Render the share image now so tapping Share can call navigator.share immediately.
+    const card = renderCardBlob(summary);
+    card.catch(() => {});
     await showResults(overlay, summary, {
       siteUrl: withUtm(config.siteUrl),
+      linkedInPostUrl: config.linkedInPostUrl,
       showLeadForm: hubspotEnabled(hubspotTarget),
-      onShare: async () => shareResult(await renderCardBlob(summary), summary),
+      onShare: async () => shareResult(await card, summary),
       onSubmitLead: (lead) =>
         submitLead(hubspotTarget, buildSubmission(lead, summary, { pageUri: config.pageUrl, pageName: 'Margin Mower' })),
     });

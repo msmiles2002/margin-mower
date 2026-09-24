@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { config, linkedInShareUrl, withUtm } from './config';
+import { config, withUtm } from './config';
 
 describe('config', () => {
   it('points at the bomdata.io page and contact page', () => {
@@ -16,9 +16,4 @@ describe('config', () => {
     expect(url.searchParams.get('utm_campaign')).toBe('margin-mower');
   });
 
-  it('builds a LinkedIn share link for the page', () => {
-    expect(linkedInShareUrl('https://bomdata.io/margin-mower/')).toBe(
-      'https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fbomdata.io%2Fmargin-mower%2F',
-    );
-  });
 });

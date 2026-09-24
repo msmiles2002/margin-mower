@@ -8,6 +8,7 @@ import { button, el, link, logo, waitFor } from './dom';
 
 export interface ResultsActions {
   siteUrl: string;
+  linkedInPostUrl: string;
   showLeadForm: boolean;
   onShare(): Promise<ShareOutcome>;
   onSubmitLead(lead: LeadFields): Promise<boolean>;
@@ -15,7 +16,8 @@ export interface ResultsActions {
 
 const SHARE_MESSAGES: Record<ShareOutcome, string> = {
   shared: 'Shared!',
-  downloaded: 'Image saved. Attach it to your LinkedIn post.',
+  saved: 'Image saved and caption copied. Paste both into your LinkedIn post.',
+  'saved-no-caption': 'Image saved. Attach it to your LinkedIn post.',
   cancelled: '',
 };
 
@@ -69,9 +71,14 @@ export function showResults(overlay: HTMLElement, summary: RoundSummary, actions
   const copy = shiftCardCopy(summary);
   return waitFor<void>(overlay, (done) => {
     const shareStatus = el('p', { className: 'form-status' });
+    // A real link rather than window.open, so popup blockers can't stop it.
+    const linkedIn = link('Open LinkedIn', 'btn secondary', actions.linkedInPostUrl);
+    linkedIn.hidden = true;
     const shareButton = button('SHARE MY SCORE', 'primary', async () => {
       shareButton.disabled = true;
-      shareStatus.textContent = SHARE_MESSAGES[await actions.onShare()];
+      const result = await actions.onShare();
+      shareStatus.textContent = SHARE_MESSAGES[result];
+      linkedIn.hidden = result !== 'saved' && result !== 'saved-no-caption';
       shareButton.disabled = false;
     });
     return [
@@ -88,6 +95,7 @@ export function showResults(overlay: HTMLElement, summary: RoundSummary, actions
       ]),
       shareButton,
       shareStatus,
+      linkedIn,
       el('div', { className: 'button-row' }, [
         link('See how BomData works', 'btn secondary', actions.siteUrl),
         button('Play again', 'secondary', () => done()),

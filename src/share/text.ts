@@ -49,6 +49,17 @@ export function summaryLine(s: RoundSummary): string {
   return `${s.title} · ${s.stars}/${s.maxStars} stars · ${s.efficiency}% efficiency · ${laborPhrase(s)} · ${formatPoints(s.points)} pts`;
 }
 
+// "https://bomdata.io/margin-mower/" → "bomdata.io/margin-mower"
+export function displayUrl(pageUrl: string): string {
+  return pageUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+}
+
 export function shareText(s: RoundSummary, pageUrl: string): string {
-  return `I finished as a ${s.title} in Margin Mower: ${s.efficiency}% efficiency, ${laborPhrase(s)}. Can you mow on budget? ${pageUrl}`;
+  return [
+    `I hit ${s.title} in Margin Mower 🌱`,
+    `${s.efficiency}% efficiency · ${laborPhrase(s)}`,
+    '',
+    'Think you can beat it?',
+    displayUrl(pageUrl),
+  ].join('\n');
 }
