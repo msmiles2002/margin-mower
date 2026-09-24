@@ -16,8 +16,17 @@
     <div id="app">
       <canvas id="board"></canvas>
       <div id="controls" hidden>
-        <button id="hop-button" type="button">⬆ HOP<small>tap · flick up · ↑</small></button>
-        <button id="duck-button" type="button">⬇ DUCK · PULL<small>tap · flick down · ↓</small></button>
+        <span id="controls-hint" class="controls-hint" hidden>
+          <span class="touch">Tap a button or swipe</span><span class="keys">Click a button or press ↑ ↓</span>
+        </span>
+        <button id="hop-button" class="hop" type="button">
+          <span class="cap">↑</span><span class="name">HOP</span>
+          <span class="chips"><span class="chip touch">tap</span><span class="chip touch">swipe ↑</span><span class="chip keys">W</span><span class="chip keys">space</span></span>
+        </button>
+        <button id="duck-button" class="duck" type="button">
+          <span class="cap">↓</span><span class="name">DUCK <br />&amp; PULL</span>
+          <span class="chips"><span class="chip touch">tap</span><span class="chip touch">swipe ↓</span><span class="chip keys">S</span></span>
+        </button>
       </div>
       <div id="overlay"></div>
     </div>

@@ -63,9 +63,26 @@ function setPlaying(run: Run | null): void {
   game.refit();
 }
 
+// The first time play starts, a hint points at the buttons until the first move or HINT_MS.
+const HINT_MS = 4000;
+const controlsHint = byId('controls-hint', HTMLSpanElement);
+let hintTimer = 0;
+function hideControlsHint(): void {
+  window.clearTimeout(hintTimer);
+  controlsHint.hidden = true;
+  controlsPad.classList.remove('coaching');
+}
+function showControlsHint(): void {
+  controlsHint.hidden = false;
+  controlsPad.classList.add('coaching');
+  hintTimer = window.setTimeout(hideControlsHint, HINT_MS);
+}
+let hintShown = false;
+
 const controls = setupControls(
   { canvas, hopButton: byId('hop-button', HTMLButtonElement), duckButton: byId('duck-button', HTMLButtonElement) },
   rng,
+  hideControlsHint,
 );
 const hubspotTarget = { portalId: config.hubspotPortalId, formGuid: config.hubspotFormGuid };
 const SAMPLE_SUMMARY: RoundSummary = {
@@ -93,11 +110,16 @@ async function playRound(): Promise<RoundSummary> {
     await showIntro(overlay, property, index, PROPERTIES.length);
 
     setPlaying(run);
+    if (!hintShown) {
+      hintShown = true;
+      showControlsHint();
+    }
     await playProperty(run, rng, () => {
       updateHints(run, seenHints);
       redraw();
     });
     setPlaying(null);
+    hideControlsHint();
 
     const score = scoreProperty(resultOf(run));
     scores.push(score);

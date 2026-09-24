@@ -43,14 +43,19 @@ export interface Controls {
   setRun(run: Run | null): void;
 }
 
-export function setupControls({ canvas, hopButton, duckButton }: ControlElements, rng: Rng): Controls {
+// `onAction` runs on every hop or duck the player makes, by any input.
+export function setupControls({ canvas, hopButton, duckButton }: ControlElements, rng: Rng, onAction: () => void = () => {}): Controls {
   let active: Run | null = null;
   const pressed = (button: HTMLButtonElement, on: boolean) => button.classList.toggle('active', on);
   const doHop = () => {
-    if (active !== null) hop(active);
+    if (active === null) return;
+    hop(active);
+    onAction();
   };
   const duckOn = () => {
-    if (active !== null) pressDuck(active, rng);
+    if (active === null) return;
+    pressDuck(active, rng);
+    onAction();
   };
   const duckOff = () => {
     if (active !== null) releaseDuck(active);

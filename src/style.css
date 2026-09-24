@@ -46,26 +46,110 @@ body.playing { touch-action: none; -webkit-touch-callout: none; -webkit-user-sel
 }
 
 #controls {
+  position: relative;
   display: flex;
   gap: 12px;
   margin-top: 14px;
   width: min(calc(100vw - 32px), 560px);
 }
+/* Pixel keycaps: a cream card with the arrow drawn as a key, then a chip for each other way to press it.
+   Both buttons split the row evenly, whatever their labels say. */
 #controls button {
-  flex: 1;
-  padding: 18px 8px;
-  font: 12px/1.5 var(--pixel);
-  border: 3px solid #111;
-  box-shadow: 3px 3px 0 #111;
-  background: var(--yellow);
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 12px 16px;
+  font-family: var(--body);
   color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  box-shadow: inset 0 -7px 0 #e4ddc8, 4px 4px 0 #000;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
-#controls button.active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #111; }
-#controls small { display: block; margin-top: 4px; font: 11px var(--body); opacity: 0.7; }
+#controls button.active { transform: translate(3px, 3px); box-shadow: inset 0 -3px 0 #e4ddc8, 1px 1px 0 #000; }
+#controls .hop { --key: var(--yellow); }
+#controls .duck { --key: var(--green); }
+#controls .cap {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 36px;
+  font: 15px/1 var(--pixel);
+  background: var(--key);
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.18);
+}
+#controls .name { font: 12px/1.5 var(--pixel); white-space: nowrap; }
+#controls .name br { display: none; }
+#controls .chips { display: flex; gap: 5px; }
+#controls .chip {
+  padding: 3px 7px;
+  font: 700 11px var(--body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+}
+/* Phones list the touch moves; computers list the keys. */
+body:not(.mobile) #controls .touch,
+body.mobile #controls .keys { display: none; }
+
+/* First-play hint: a bubble above the buttons and a ring pulsing around each one. */
+.controls-hint {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  z-index: 1;
+  padding: 7px 12px;
+  font: 700 12px var(--body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 #000;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: hint-bob 1.2s ease-in-out infinite;
+}
+.controls-hint::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  border: 7px solid transparent;
+  border-top-color: var(--ink);
+  transform: translateX(-50%);
+}
+#controls.coaching button::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border: 3px solid var(--key);
+  border-radius: 11px;
+  pointer-events: none;
+  animation: hint-ring 1.4s ease-out infinite;
+}
+@keyframes hint-bob { 50% { transform: translate(-50%, -4px); } }
+@keyframes hint-ring { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(1.08); } }
+@media (prefers-reduced-motion: reduce) {
+  .controls-hint,
+  #controls.coaching button::before { animation: none; }
+}
 
 #overlay:empty { display: none; }
 
@@ -216,16 +300,15 @@ body.mobile #controls {
   background: #1b1e25;
 }
 body.mobile #controls button {
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  border-radius: 14px;
-  box-shadow: 0 4px 0 #0b0c10;
+  gap: 10px;
+  padding: 10px 8px 14px;
 }
-body.mobile #controls button.active { transform: translateY(3px); box-shadow: 0 1px 0 #0b0c10; }
-body.mobile #controls small { margin-top: 10px; font-size: 14px; }
+body.mobile #controls .cap { width: 52px; height: 46px; font-size: 20px; }
+/* Room for a two-line label in both buttons, so the keys and chips line up across the pair. */
+body.mobile #controls .name { display: flex; align-items: center; min-height: 3em; font-size: 14px; text-align: center; white-space: normal; }
+body.mobile #controls .name br { display: inline; }
+body.mobile #controls .chip { font-size: 12px; }
 
 /* Panels become a bottom sheet over the lower 60% of the screen, with the scene visible above. */
 body.mobile #overlay { padding: 0; }
